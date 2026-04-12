@@ -1,7 +1,7 @@
 // character.class.js
 class Character extends MovableObject {
     height = 230;
-    y = 200;
+    y = 80;
     width = 120;
     speed = 10;
     world;
@@ -19,6 +19,9 @@ class Character extends MovableObject {
         super();
         this.loadImage('img/2_character_pepe/1_idle/idle/I-1.png');
         this.loadImages(this.IMAGES_WALKING);
+        this.applyGravity();
+        this.animate();
+
     }
 
     animate() {

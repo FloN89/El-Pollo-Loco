@@ -20,7 +20,7 @@ IMAGES_WALKING = [
     constructor() {
         super().loadImage('/img/4_enemie_boss_chicken/2_alert/G5.png');
         this.loadImages(this.IMAGES_WALKING);
-        this.x = 700;
+        this.x = 3200;
         this.animate();
     }   
 
