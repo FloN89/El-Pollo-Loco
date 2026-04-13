@@ -1,4 +1,3 @@
-// movable-object.class.js
 class MovableObject {
     x = 120;
     y = 280;
@@ -26,8 +25,6 @@ class MovableObject {
     }
     
 
-
-
     loadImage(path) {
         this.img = new Image();
         this.img.src = path;
@@ -41,10 +38,29 @@ class MovableObject {
         });
     }
 
+    draw(ctx) {
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    }
+
+    drawFrame(ctx) {
+
+        if(this instanceof Character || this instanceof Chicken || this instanceof Endboss) {
+        ctx.beginPath();
+        ctx.lineWidth = '1';
+        ctx.strokeStyle = 'blue';
+        ctx.rect(this.x, this.y, this.width, this.height);
+        ctx.stroke(); 
+        }
+    }
+
+    moveRight() {
+        this.x += this.speed;
+        
+                
+    }
+
     moveLeft() {
-        setInterval(() => {
             this.x -= this.speed;
-        }, 1000 / 60);
     }
 
     playAnimation(images) {
@@ -52,5 +68,10 @@ class MovableObject {
         let path = images[i];
         this.img = this.imageCache[path];
         this.currentImage++;
+    }
+
+    jump() {
+        this.speedY = 30;
+
     }
 }
