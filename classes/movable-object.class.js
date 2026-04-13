@@ -10,6 +10,8 @@ class MovableObject {
     otherDirection = false;
     speedY = 0;
     acceleration = 2.5;
+    energy = 100;
+    lastHit = 0;
 
     applyGravity() {
         setInterval(() => {
@@ -53,10 +55,37 @@ class MovableObject {
         }
     }
 
+    iscolliding(mo) {
+        return this.x + this.width > mo.x &&
+               this.y + this.height > mo.y &&
+               this.x < mo.x + mo.width &&
+               this.y < mo.y + mo.height;
+    }
+
+    hit() {
+        this.energy -= 5;   
+            if(this.energy < 0) {
+                this.energy = 0;
+            } else {
+                this.playAnimation(this.IMAGES_HURT);
+                this.lastHit = new Date().getTime();
+            }   
+            }   
+
+        isHurt() {  
+            let timepassed = new Date().getTime() - this.lastHit;
+            timepassed = timepassed / 1000;
+            return timepassed < 1;
+        }   
+       
+    
+
+    isDead() {
+        return this.energy == 0;
+    }
+
     moveRight() {
-        this.x += this.speed;
-        
-                
+        this.x += this.speed;        
     }
 
     moveLeft() {
@@ -72,6 +101,5 @@ class MovableObject {
 
     jump() {
         this.speedY = 30;
-
     }
 }
