@@ -1,19 +1,11 @@
-class bottle extends MovableObject {
+class Bottle extends MovableObject {
+    width = 60;
+    height = 70;
 
-    
-
-    constructor(x, y) {     
+    constructor(x, y = 360) {
         super();
+        this.loadImage('img/6_salsa_bottle/salsa_bottle.png');
         this.x = x;
-        this.y = y; 
-        this.loadImage('img/6_salsa_bottle/bottle_rotation/1_bottle_rotation.png');
-    }   
-
-    throw() {
-        this.speedY = 10;
-        this.speed = 5;
-        this.applyGravity();
-    }   
-
+        this.y = y;
+    }
 }
-

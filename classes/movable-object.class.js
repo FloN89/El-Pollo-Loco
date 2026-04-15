@@ -17,11 +17,14 @@ class MovableObject extends DrawableObject {
     }
 
     isAboveGround() {
-        return this.y < 190;
+        if (this instanceof ThrowableObjects) {d
+            return true;
+        } else{
+            return this.y < 180;
+
+        } 
     }
     
-  
-
     iscolliding(mo) {
         return this.x + this.width > mo.x &&
                this.y + this.height > mo.y &&
