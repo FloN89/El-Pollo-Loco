@@ -40,8 +40,8 @@ class World {
     }
 
     loadScreenImages() {
-        this.startScreenImage.src = 'img/startscreen 2.png';
-        this.gameOverImage.src = 'img/game over.png';
+        this.startScreenImage.src = 'img/9_intro_outro_screens/start/startscreen_1.png';
+        this.gameOverImage.src = 'img/You won, you lost/Game Over.png';
         this.youWinImage.src = 'img/you win.png';
     }
 
@@ -245,6 +245,19 @@ class World {
             return;
         }
 
+        this.drawWorld();
+        this.drawUi();
+
+        if (this.gameOver) {
+            this.drawScreenOverlay(this.gameOverImage, 'GAME OVER');
+        } else if (this.gameWon) {
+            this.drawScreenOverlay(this.youWinImage, 'YOU WIN');
+        }
+
+        requestAnimationFrame(() => this.draw());
+    }
+
+    drawWorld() {
         this.ctx.translate(this.camera_x, 0);
         this.addObjectsToMap(this.level.backgroundObjects);
         this.addObjectsToMap(this.level.clouds);
@@ -254,16 +267,6 @@ class World {
         this.addObjectsToMap(this.level.enemies);
         this.addObjectsToMap(this.throwableObjects);
         this.ctx.translate(-this.camera_x, 0);
-
-        this.drawUi();
-
-        if (this.gameOver) {
-            this.drawFullscreenImage(this.gameOverImage, 'GAME OVER');
-        } else if (this.gameWon) {
-            this.drawFullscreenImage(this.youWinImage, 'YOU WIN');
-        }
-
-        requestAnimationFrame(() => this.draw());
     }
 
     drawUi() {
@@ -275,7 +278,7 @@ class World {
             this.addToMap(this.endbossBar);
         }
 
-        this.ctx.font = '20px Arial';
+        this.ctx.font = '20px Zabars, Arial';
         this.ctx.fillStyle = 'white';
         this.ctx.fillText(`${this.collectedBottles}/${this.maxBottles}`, 165, 88);
         this.ctx.fillText(`${this.collectedCoins}/${this.totalCoins}`, 165, 128);
@@ -285,14 +288,50 @@ class World {
         if (image.complete && image.naturalWidth > 0) {
             this.ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
         } else {
-            this.ctx.fillStyle = 'black';
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 48px Arial';
+            this.ctx.font = 'bold 48px Zabars, Arial';
             this.ctx.textAlign = 'center';
             this.ctx.fillText(fallbackText, this.canvas.width / 2, this.canvas.height / 2);
-            this.ctx.textAlign = 'left';
+            this.ctx.restore();
         }
+    }
+
+    drawScreenOverlay(image, fallbackText) {
+        this.ctx.save();
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (image.complete && image.naturalWidth > 0) {
+            const size = this.getContainedOverlaySize(image, this.canvas.width * 0.72, this.canvas.height * 0.6);
+            this.ctx.globalAlpha = 0.9;
+            this.ctx.drawImage(image, size.x, size.y, size.width, size.height);
+            this.ctx.globalAlpha = 1;
+        } else {
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            this.ctx.fillRect(120, 140, this.canvas.width - 240, this.canvas.height - 280);
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 42px Zabars, Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(fallbackText, this.canvas.width / 2, this.canvas.height / 2);
+        }
+
+        this.ctx.restore();
+    }
+
+    getContainedOverlaySize(image, maxWidth, maxHeight) {
+        const ratio = Math.min(maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+        const width = image.naturalWidth * ratio;
+        const height = image.naturalHeight * ratio;
+
+        return {
+            width,
+            height,
+            x: (this.canvas.width - width) / 2,
+            y: (this.canvas.height - height) / 2,
+        };
     }
 
     addObjectsToMap(objects) {

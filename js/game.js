@@ -18,6 +18,10 @@ window.addEventListener('keydown', (event) => {
         world.startGame();
     }
 
+    if (event.keyCode == 32) {
+        event.preventDefault();
+    }
+
     if (event.keyCode == 37) {
         keyboard.LEFT = true;
     } else if (event.keyCode == 39) {
