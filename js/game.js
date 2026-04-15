@@ -6,10 +6,18 @@ function initGame() {
     canvas = document.getElementById('canvas');
     world = new World(canvas, keyboard);
 
+    canvas.addEventListener('click', () => {
+        world.startGame();
+    });
+
     console.log('My Character is', world.character);
 }
 
 window.addEventListener('keydown', (event) => {
+    if ((event.keyCode == 32 || event.keyCode == 13) && world && !world.gameStarted) {
+        world.startGame();
+    }
+
     if (event.keyCode == 37) {
         keyboard.LEFT = true;
     } else if (event.keyCode == 39) {

@@ -17,18 +17,38 @@ class World {
     collectedCoins = 0;
     maxBottles = 5;
     totalCoins = 0;
+
+    gameStarted = false;
     gameOver = false;
     gameWon = false;
     endScreenScheduled = false;
+
+    startScreenImage = new Image();
+    gameOverImage = new Image();
+    youWinImage = new Image();
 
     constructor(canvas, keyboard) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.keyboard = keyboard;
         this.totalCoins = this.level.coins.length;
+
+        this.loadScreenImages();
         this.setWorld();
         this.draw();
         this.run();
+    }
+
+    loadScreenImages() {
+        this.startScreenImage.src = 'img/startscreen 2.png';
+        this.gameOverImage.src = 'img/game over.png';
+        this.youWinImage.src = 'img/you win.png';
+    }
+
+    startGame() {
+        if (!this.gameStarted && !this.gameOver && !this.gameWon) {
+            this.gameStarted = true;
+        }
     }
 
     setWorld() {
@@ -42,7 +62,7 @@ class World {
 
     run() {
         setInterval(() => {
-            if (this.gameOver || this.gameWon) {
+            if (!this.gameStarted || this.gameOver || this.gameWon) {
                 return;
             }
 
@@ -59,6 +79,16 @@ class World {
 
     getEndboss() {
         return this.level.enemies.find((enemy) => enemy instanceof Endboss);
+    }
+
+    shouldShowEndbossBar() {
+        let boss = this.getEndboss();
+
+        if (!boss || boss.isBossDead) {
+            return false;
+        }
+
+        return this.character.x > boss.x - 650;
     }
 
     checkGameState() {
@@ -102,7 +132,10 @@ class World {
     checkThrowObjects() {
         if (this.keyboard.D && !this.throwKeyWasPressed && this.collectedBottles > 0) {
             let direction = this.character.otherDirection ? -1 : 1;
-            let startX = this.character.otherDirection ? this.character.x : this.character.x + this.character.width - 20;
+            let startX = this.character.otherDirection
+                ? this.character.x
+                : this.character.x + this.character.width - 20;
+
             let bottle = new ThrowableObjects(startX, this.character.y + 100, direction);
             this.throwableObjects.push(bottle);
 
@@ -136,6 +169,7 @@ class World {
                         this.endbossBar.setPercentage(enemy.energy);
                     } else if (enemy instanceof Chicken) {
                         enemy.die();
+
                         setTimeout(() => {
                             let index = this.level.enemies.indexOf(enemy);
                             if (index > -1) {
@@ -205,6 +239,12 @@ class World {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        if (!this.gameStarted) {
+            this.drawFullscreenImage(this.startScreenImage, 'START');
+            requestAnimationFrame(() => this.draw());
+            return;
+        }
+
         this.ctx.translate(this.camera_x, 0);
         this.addObjectsToMap(this.level.backgroundObjects);
         this.addObjectsToMap(this.level.clouds);
@@ -218,9 +258,9 @@ class World {
         this.drawUi();
 
         if (this.gameOver) {
-            this.drawOverlay('GAME OVER', 'Pepe ist tot');
+            this.drawFullscreenImage(this.gameOverImage, 'GAME OVER');
         } else if (this.gameWon) {
-            this.drawOverlay('DU HAST GEWONNEN', 'Der Endboss ist besiegt');
+            this.drawFullscreenImage(this.youWinImage, 'YOU WIN');
         }
 
         requestAnimationFrame(() => this.draw());
@@ -230,7 +270,10 @@ class World {
         this.addToMap(this.statusBar);
         this.addToMap(this.bottleBar);
         this.addToMap(this.coinBar);
-        this.addToMap(this.endbossBar);
+
+        if (this.shouldShowEndbossBar()) {
+            this.addToMap(this.endbossBar);
+        }
 
         this.ctx.font = '20px Arial';
         this.ctx.fillStyle = 'white';
@@ -238,17 +281,18 @@ class World {
         this.ctx.fillText(`${this.collectedCoins}/${this.totalCoins}`, 165, 128);
     }
 
-    drawOverlay(title, subtitle) {
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        this.ctx.fillStyle = 'white';
-        this.ctx.textAlign = 'center';
-        this.ctx.font = 'bold 56px Arial';
-        this.ctx.fillText(title, this.canvas.width / 2, this.canvas.height / 2 - 20);
-        this.ctx.font = '24px Arial';
-        this.ctx.fillText(subtitle, this.canvas.width / 2, this.canvas.height / 2 + 30);
-        this.ctx.textAlign = 'left';
+    drawFullscreenImage(image, fallbackText) {
+        if (image.complete && image.naturalWidth > 0) {
+            this.ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
+        } else {
+            this.ctx.fillStyle = 'black';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 48px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(fallbackText, this.canvas.width / 2, this.canvas.height / 2);
+            this.ctx.textAlign = 'left';
+        }
     }
 
     addObjectsToMap(objects) {
