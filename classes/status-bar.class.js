@@ -2,7 +2,7 @@ class StatusBar extends MovableObject {
     width = 200;
     height = 60;
     x = 10;
-    y = 10; 
+    y = 10;
 
     IMAGES = [
         'img/7_statusbars/1_statusbar/2_statusbar_health/blue/0.png',

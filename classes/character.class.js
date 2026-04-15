@@ -1,10 +1,11 @@
-// character.class.js
 class Character extends MovableObject {
     height = 230;
-    y = 80;
+    y = 180;
     width = 120;
     speed = 10;
+    groundY = 180;
     world;
+    deathAnimationIndex = 0;
 
     IMAGES_WALKING = [
         'img/2_character_pepe/2_walk/W-21.png',
@@ -67,7 +68,9 @@ class Character extends MovableObject {
 
     animate() {
         setInterval(() => {
-            if (!this.world) return;
+            if (!this.world || this.isDead() || this.world.gameOver) {
+                return;
+            }
 
             if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
                 this.moveRight();
@@ -87,10 +90,12 @@ class Character extends MovableObject {
         }, 1000 / 60);
 
         setInterval(() => {
-            if (!this.world) return;
+            if (!this.world) {
+                return;
+            }
 
             if (this.isDead()) {
-                this.playAnimation(this.IMAGES_DEAD);
+                this.playDeadAnimation();
             } else if (this.isHurt()) {
                 this.playAnimation(this.IMAGES_HURT);
             } else if (this.isAboveGround()) {
@@ -100,6 +105,17 @@ class Character extends MovableObject {
             } else {
                 this.playAnimation(this.IMAGES_IDLE);
             }
-        }, 50);
+        }, 80);
+    }
+
+    playDeadAnimation() {
+        if (this.deathAnimationIndex < this.IMAGES_DEAD.length) {
+            let path = this.IMAGES_DEAD[this.deathAnimationIndex];
+            this.img = this.imageCache[path];
+            this.deathAnimationIndex++;
+        } else {
+            let lastImage = this.IMAGES_DEAD[this.IMAGES_DEAD.length - 1];
+            this.img = this.imageCache[lastImage];
+        }
     }
 }

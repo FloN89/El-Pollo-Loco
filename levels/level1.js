@@ -1,29 +1,48 @@
-function createRandomBottles(amount) {
-    let bottles = [];
+function createDistributedXPositions(amount, startX, endX) {
+    let positions = [];
+    let distance = (endX - startX) / amount;
 
     for (let i = 0; i < amount; i++) {
-        let x = 300 + Math.random() * 2300;
-        bottles.push(new Bottle(x, 360));
+        let baseX = startX + i * distance;
+        let randomOffset = Math.random() * Math.max(80, distance - 120);
+        positions.push(Math.round(baseX + randomOffset));
     }
 
-    return bottles;
+    return positions;
+}
+
+function createRandomBottles(amount, startX = 250, endX = 2950) {
+    return createDistributedXPositions(amount, startX, endX).map((x) => new Bottle(x, 360));
+}
+
+function createRandomCoins(amount, startX = 350, endX = 3000) {
+    const coinHeights = [140, 180, 220, 260, 300];
+
+    return createDistributedXPositions(amount, startX, endX).map((x, index) => {
+        let y = coinHeights[index % coinHeights.length];
+        return new Coin(x, y);
+    });
+}
+
+function createRandomChickens(amount, startX = 500, endX = 2850) {
+    return createDistributedXPositions(amount, startX, endX).map((x) => new Chicken(x));
+}
+
+function createRandomClouds(amount, startX = -300, endX = 3200) {
+    return createDistributedXPositions(amount, startX, endX).map((x, index) => {
+        let y = 20 + (index % 3) * 20;
+        let speed = 0.04 + (index % 4) * 0.015;
+        return new Cloud(x, y, speed, 3600);
+    });
 }
 
 const level1 = new Level(
     [
-        new Chicken(),
-        new Chicken(),
-        new Chicken(),
-        new Chicken(),
-        new Chicken(),
-        new Endboss(),
+        ...createRandomChickens(12),
+        new Endboss(3200),
     ],
 
-    [
-        new Cloud(),
-        new Cloud(),
-        new Cloud(),
-    ],
+    createRandomClouds(8),
 
     [
         new BackgroundObject('img/5_background/layers/air.png', -719),
@@ -57,5 +76,7 @@ const level1 = new Level(
         new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 720 * 4),
     ],
 
-    createRandomBottles(10)
+    createRandomBottles(14),
+    createRandomCoins(16),
+    3400
 );

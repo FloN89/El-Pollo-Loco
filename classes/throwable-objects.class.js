@@ -4,6 +4,8 @@ class ThrowableObjects extends MovableObject {
     groundY = 360;
     isBroken = false;
     isFinished = false;
+    direction = 1;
+    speedX = 10;
 
     IMAGES_ROTATION = [
         'img/6_salsa_bottle/bottle_rotation/1_bottle_rotation.png',
@@ -21,25 +23,27 @@ class ThrowableObjects extends MovableObject {
         'img/6_salsa_bottle/bottle_rotation/bottle_splash/6_bottle_splash.png'
     ];
 
-    constructor(x, y) {
+    constructor(x, y, direction = 1) {
         super();
         this.loadImage(this.IMAGES_ROTATION[0]);
         this.loadImages(this.IMAGES_ROTATION);
         this.loadImages(this.IMAGES_SPLASH);
         this.x = x;
         this.y = y;
+        this.direction = direction;
+        this.otherDirection = direction < 0;
         this.throw();
         this.animate();
     }
 
     throw() {
-        this.speedY = 18;
-        this.speed = 10;
+        this.speedY = 22;
+        this.speedX = 12;
         this.applyGravity();
 
         this.throwInterval = setInterval(() => {
             if (!this.isBroken) {
-                this.x += this.speed;
+                this.x += this.speedX * this.direction;
 
                 if (this.y >= this.groundY) {
                     this.y = this.groundY;
@@ -58,10 +62,12 @@ class ThrowableObjects extends MovableObject {
     }
 
     splash() {
-        if (this.isBroken) return;
+        if (this.isBroken) {
+            return;
+        }
 
         this.isBroken = true;
-        this.speed = 0;
+        this.speedX = 0;
         this.speedY = 0;
 
         clearInterval(this.throwInterval);
