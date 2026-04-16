@@ -209,11 +209,10 @@ class WorldGameplay extends WorldAudio {
     }
 
     /** Fügt dem Charakter Schaden zu. */
-    damageCharacter(amount) {
-        this.character.hit(amount);
-        this.statusBar.setPercentage(this.character.energy);
-        this.playHitSound();
-    }
+         damageCharacter(amount) {
+            this.character.hit(amount);
+            this.playHitSound();
+}
 
     /** Entfernt abgeschlossene Wurfobjekte. */
     removeFinishedThrowableObjects() {

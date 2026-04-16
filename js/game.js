@@ -17,8 +17,8 @@ function initializeGame() {
     bindKeyboardEvents();
     setupFullscreenButton();
     setupMobileControls();
+    setupOrientationGuard();
 }
-
 /** Sammelt wichtige DOM-Elemente. */
 function cacheElements() {
     canvas = document.getElementById('canvas');
@@ -110,6 +110,10 @@ function bindCanvasEvents() {
 
 /** Reagiert auf Canvas-Klicks. */
 function handleCanvasClick(event) {
+    if (shouldBlockGameplayForOrientation()) {
+        return;
+    }
+
     const position = getCanvasPosition(event);
     world.handleCanvasClick(position.x, position.y);
     synchronizeStartScreenOverlayButtons();
@@ -135,6 +139,10 @@ function bindKeyboardEvents() {
 
 /** Reagiert auf gedrückte Tasten. */
 function handleWindowKeyDown(event) {
+    if (shouldBlockGameplayForOrientation()) {
+        return;
+    }
+
     handleStartKey(event.code);
 
     if (canReadKeyboard()) {
@@ -195,7 +203,12 @@ function setupFullscreenButton() {
 /** Schaltet zwischen Vollbild und normal um. */
 async function toggleFullscreenMode() {
     try {
-        document.fullscreenElement ? await document.exitFullscreen() : await gameStage.requestFullscreen();
+        if (document.fullscreenElement) {
+            await document.exitFullscreen();
+        } else {
+            await gameStage.requestFullscreen();
+            await tryLockLandscapeOrientation();
+        }
     } catch (error) {
         updateFullscreenIcon();
     }
@@ -256,7 +269,13 @@ function handlePressStart(event) {
 
 /** Prüft, ob ein mobiler Input ignoriert werden soll. */
 function shouldIgnoreMobileInput(event, button) {
-    return !button || !button.dataset.key || world.gameOver || world.gameWon || isHelpOpen() || isSecondaryMouseButton(event);
+    return !button ||
+        !button.dataset.key ||
+        world.gameOver ||
+        world.gameWon ||
+        isHelpOpen() ||
+        shouldBlockGameplayForOrientation() ||
+        isSecondaryMouseButton(event);
 }
 
 /** Prüft, ob die zweite Maustaste benutzt wurde. */
@@ -271,4 +290,67 @@ function handlePressEnd(event) {
     if (button?.dataset.key) {
         keyboard[button.dataset.key] = false;
     }
+}
+
+/** Erzwingt auf Mobile/Tablets das Spielen im Querformat. */
+function setupOrientationGuard() {
+    updateOrientationRequirement();
+
+    ['resize', 'orientationchange'].forEach((eventName) => {
+        window.addEventListener(eventName, updateOrientationRequirement);
+    });
+
+    document.addEventListener('fullscreenchange', updateOrientationRequirement);
+}
+
+/** Aktualisiert den Sperrstatus je nach Geräteausrichtung. */
+function updateOrientationRequirement() {
+    const isBlocked = shouldBlockGameplayForOrientation();
+    document.body.classList.toggle('portrait-game-blocked', isBlocked);
+
+    if (isBlocked) {
+        releaseAllKeys();
+        return;
+    }
+
+    tryLockLandscapeOrientation();
+}
+
+/** Prüft, ob das Spiel wegen Hochformat blockiert werden soll. */
+function shouldBlockGameplayForOrientation() {
+    return isMobileOrTabletDevice() && window.innerHeight > window.innerWidth;
+}
+
+/** Erkennt Mobile- und Tablet-Geräte. */
+function isMobileOrTabletDevice() {
+    return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
+/** Setzt alle gedrückten Tasten zurück. */
+function releaseAllKeys() {
+    keyboard.LEFT = false;
+    keyboard.RIGHT = false;
+    keyboard.UP = false;
+    keyboard.DOWN = false;
+    keyboard.SPACE = false;
+    keyboard.D = false;
+}
+
+/** Versucht unterstützte Geräte auf Querformat zu sperren. */
+async function tryLockLandscapeOrientation() {
+    if (!isMobileOrTabletDevice()) {
+        return;
+    }
+
+    if (window.innerWidth <= window.innerHeight) {
+        return;
+    }
+
+    if (!screen.orientation?.lock) {
+        return;
+    }
+
+    try {
+        await screen.orientation.lock('landscape');
+    } catch (error) {}
 }

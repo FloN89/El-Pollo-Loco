@@ -258,11 +258,15 @@ class Character extends MovableObject {
         this.world.playJumpSound();
     }
 
-    /** Reagiert auf Schaden und bleibt wach. */
-    hit(damage = 20) {
-        super.hit(damage);
-        this.rememberAction();
+    /** Reagiert auf Schaden, bleibt wach und aktualisiert die Healthbar. */
+         hit(damage = 20) {
+               super.hit(damage);
+               this.rememberAction();
+
+                  if (this.world && this.world.statusBar) {
+                  this.world.statusBar.setPercentage(this.energy);
     }
+}
 
     /** Spielt die Todesbilder nacheinander ab. */
     playDeadAnimation() {
