@@ -25,15 +25,33 @@ class Chicken extends MovableObject {
 
     animate() {
         setInterval(() => {
-            if (!this.isDeadChicken) {
-                this.moveLeft();
+            if (
+                typeof world === 'undefined' ||
+                !world ||
+                !world.gameStarted ||
+                world.gameOver ||
+                world.gameWon ||
+                this.isDeadChicken
+            ) {
+                return;
             }
+
+            this.moveLeft();
         }, 1000 / 60);
 
         setInterval(() => {
-            if (!this.isDeadChicken) {
-                this.playAnimation(this.IMAGES_WALKING);
+            if (
+                typeof world === 'undefined' ||
+                !world ||
+                !world.gameStarted ||
+                world.gameOver ||
+                world.gameWon ||
+                this.isDeadChicken
+            ) {
+                return;
             }
+
+            this.playAnimation(this.IMAGES_WALKING);
         }, 150);
     }
 

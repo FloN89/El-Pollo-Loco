@@ -55,7 +55,7 @@ class Endboss extends MovableObject {
         'img/4_enemie_boss_chicken/5_dead/G26.png'
     ];
 
-    constructor(x = 3200) {
+    constructor(x = 3200, leftBoundary = x - 320, rightBoundary = x + 80) {
         super();
         this.loadImage(this.IMAGES_ALERT[0]);
         this.loadImages(this.IMAGES_ALERT);
@@ -64,6 +64,8 @@ class Endboss extends MovableObject {
         this.loadImages(this.IMAGES_HURT);
         this.loadImages(this.IMAGES_DEAD);
         this.x = x;
+        this.leftBoundary = leftBoundary;
+        this.rightBoundary = rightBoundary;
         this.animate();
     }
 
@@ -110,13 +112,7 @@ class Endboss extends MovableObject {
 
         if (absoluteDistance > this.attackRange) {
             this.currentState = 'walk';
-
-            if (distance < 0) {
-                this.moveLeft();
-            } else {
-                this.moveRight();
-            }
-
+            this.moveInArena(distance);
             return false;
         }
 
@@ -128,6 +124,24 @@ class Endboss extends MovableObject {
         }
 
         return false;
+    }
+
+    moveInArena(distance) {
+        if (distance < 0) {
+            if (this.x > this.leftBoundary) {
+                this.moveLeft();
+                this.x = Math.max(this.x, this.leftBoundary);
+            } else {
+                this.currentState = 'alert';
+            }
+        } else {
+            if (this.x < this.rightBoundary) {
+                this.moveRight();
+                this.x = Math.min(this.x, this.rightBoundary);
+            } else {
+                this.currentState = 'alert';
+            }
+        }
     }
 
     canAttack() {

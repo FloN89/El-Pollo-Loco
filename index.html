@@ -32,12 +32,29 @@
     <main class="game-page">
         <h1>El Pollo Loco</h1>
 
-        <div class="game-stage">
+        <div class="game-stage" id="game-stage">
+            <button id="fullscreen-btn" class="fullscreen-btn" type="button" aria-label="Vollbild umschalten">⛶</button>
+
             <div class="rotate-device-hint">
-                <span>Bitte Bildschirm drehen</span>
+                <span>Bitte Tablet oder Handy ins Querformat drehen</span>
             </div>
 
             <canvas id="canvas" width="720" height="480"></canvas>
+
+            <div class="mobile-controls">
+                <div class="mobile-controls-move">
+                    <button id="btn-jump" class="mobile-btn mobile-btn-jump" type="button">↑</button>
+
+                    <div class="mobile-controls-bottom">
+                        <button id="btn-left" class="mobile-btn" type="button">←</button>
+                        <button id="btn-right" class="mobile-btn" type="button">→</button>
+                    </div>
+                </div>
+
+                <div class="mobile-controls-throw">
+                    <button id="btn-throw" class="mobile-btn mobile-btn-throw" type="button">THROW</button>
+                </div>
+            </div>
         </div>
     </main>
 </body>

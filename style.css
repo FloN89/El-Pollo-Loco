@@ -1,49 +1,70 @@
 @font-face {
     font-family: 'Zabars';
-    src: url('fonts/Zabars.ttf') format('truetype');
+    src: url('fonts/zabars.regular.ttf') format('truetype');
     font-display: swap;
 }
 
 :root {
-    /* Hier später nur den Bildpfad austauschen */
+    --game-font: 'Zabars', Arial, sans-serif;
     --canvas-bg-image: url('img/backgrounds/canvas-bg-placeholder.png');
+    --page-padding: clamp(8px, 2vh, 24px);
+    --stage-gap: clamp(8px, 1.5vh, 20px);
+    --stage-safe-height: calc(100dvh - (var(--page-padding) * 2) - 88px - var(--stage-gap));
 }
 
 * {
     box-sizing: border-box;
 }
 
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+    font-family: var(--game-font);
+}
+
 body {
     margin: 0;
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 24px;
+    padding: var(--page-padding);
     background: linear-gradient(180deg, #f7d07a 0%, #f39c35 100%);
-    font-family: 'Zabars', Arial, sans-serif;
 }
 
 .game-page {
     width: 100%;
+    min-height: calc(100dvh - (var(--page-padding) * 2));
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: var(--stage-gap);
 }
 
 h1 {
     margin: 0;
     text-align: center;
     letter-spacing: 2px;
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-size: clamp(2rem, 4vw, 4.5rem);
+    line-height: 1;
     color: #ffffff;
     text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.25);
 }
 
 .game-stage {
     position: relative;
-    width: min(720px, calc(100vw - 48px));
+    width: min(720px, calc(100vw - (var(--page-padding) * 2)), calc(var(--stage-safe-height) * 1.5));
+    height: min(480px, var(--stage-safe-height), calc((100vw - (var(--page-padding) * 2)) / 1.5));
     aspect-ratio: 720 / 480;
     border-radius: 28px;
     overflow: hidden;
@@ -54,6 +75,15 @@ h1 {
     background-repeat: no-repeat;
 }
 
+.game-stage:fullscreen,
+.game-stage:-webkit-full-screen {
+    width: 100vw;
+    height: 100dvh;
+    aspect-ratio: auto;
+    max-width: none;
+    border-radius: 0;
+}
+
 canvas {
     display: block;
     width: 100%;
@@ -61,42 +91,189 @@ canvas {
     background: transparent;
 }
 
+.fullscreen-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 5;
+    width: 52px;
+    height: 52px;
+    border: none;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.fullscreen-btn:hover {
+    background: rgba(0, 0, 0, 0.72);
+}
+
 .rotate-device-hint {
     display: none;
     position: absolute;
     inset: 0;
-    z-index: 2;
+    z-index: 6;
     align-items: center;
     justify-content: center;
     padding: 24px;
     text-align: center;
-    background: rgba(0, 0, 0, 0.72);
+    background: rgba(0, 0, 0, 0.78);
     color: #ffffff;
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
     letter-spacing: 1px;
 }
 
 .rotate-device-hint span {
-    max-width: 240px;
+    max-width: 360px;
     line-height: 1.2;
 }
 
-@media (max-width: 726px) {
-    body {
-        padding: 12px;
-    }
+.mobile-controls {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+}
 
-    .game-page {
-        gap: 12px;
+.mobile-controls-move,
+.mobile-controls-throw {
+    position: absolute;
+}
+
+.mobile-controls-move {
+    left: 18px;
+    bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.mobile-controls-throw {
+    right: 18px;
+    bottom: 18px;
+}
+
+.mobile-controls-bottom {
+    display: flex;
+    gap: 10px;
+}
+
+.mobile-btn {
+    pointer-events: auto;
+    border: none;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.58);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.mobile-btn:active {
+    transform: scale(0.97);
+}
+
+.mobile-btn-jump,
+.mobile-controls-bottom .mobile-btn {
+    width: 58px;
+    height: 58px;
+    font-size: 1.6rem;
+}
+
+.mobile-btn-throw {
+    min-width: 92px;
+    height: 92px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 726px) {
+    :root {
+        --stage-safe-height: calc(100dvh - (var(--page-padding) * 2) - 56px - var(--stage-gap));
     }
 
     .game-stage {
-        width: min(100vw - 24px, 720px);
         border-radius: 18px;
     }
 }
 
-@media (max-width: 726px) and (orientation: portrait) {
+@media (max-width: 480px) {
+    .mobile-controls-move {
+        left: 12px;
+        bottom: 12px;
+        gap: 8px;
+    }
+
+    .mobile-controls-throw {
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .mobile-controls-bottom {
+        gap: 8px;
+    }
+
+    .mobile-btn-jump,
+    .mobile-controls-bottom .mobile-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.4rem;
+    }
+
+    .mobile-btn-throw {
+        min-width: 78px;
+        height: 78px;
+        font-size: 0.95rem;
+        padding: 0 14px;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .mobile-controls {
+        display: block;
+    }
+}
+
+@media (max-width: 726px), (hover: none) and (pointer: coarse) {
+    body {
+        padding: 0;
+        align-items: stretch;
+    }
+
+    .game-page {
+        min-height: 100dvh;
+        gap: 0;
+    }
+
+    .game-page h1 {
+        display: none;
+    }
+
+    .game-stage {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .fullscreen-btn {
+        display: none;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
     .rotate-device-hint {
         display: flex;
     }
