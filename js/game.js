@@ -94,16 +94,26 @@ function bindKeyboardEvents() {
 // Reagiert auf gedrückte Tasten.
 function handleWindowKeyDown(event) {
     handleAnyUserInteraction();
-    if (isStartKey(event.code)) {
+
+    if (world && !world.gameStarted && isStartKey(event.code)) {
+        event.preventDefault();
         startGameIfNeeded();
+        return;
     }
+
     if (event.code === 'Space') {
         event.preventDefault();
     }
+
     if (!world || world.gameOver || world.gameWon) {
         return;
     }
+
     setPressedKeyState(event.code, true);
+}
+
+function isStartKey(code) {
+    return code === 'Enter';
 }
 
 // Reagiert auf losgelassene Tasten.
@@ -203,4 +213,18 @@ function handlePressStart(keyName, event) {
 function handlePressEnd(keyName, event) {
     event.preventDefault();
     keyboard[keyName] = false;
+}
+
+function toggleImpressum(show) {
+    const dialog = document.getElementById('impressum-dialog');
+
+    if (!dialog) {
+        return;
+    }
+
+    if (show) {
+        dialog.showModal();
+    } else {
+        dialog.close();
+    }
 }

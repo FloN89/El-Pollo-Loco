@@ -51,7 +51,19 @@
                 </div>
             </div>
         </div>
-        <a class="page-imprint-link" href="/impressum/impressum.html" target="_blank" rel="noopener noreferrer" aria-label="Impressum öffnen">Impressum</a>
+       <a id="start-screen-imprint" class="start-screen-imprint" href="#" onclick="toggleImpressum(true); return false;">
+    Impressum
+</a>
+
+<a class="page-imprint-link" href="#" onclick="toggleImpressum(true); return false;">
+    Impressum
+</a>
+
+<dialog id="impressum-dialog" class="impressum-dialog">
+    <h2>Impressum</h2>
+    <p>Hier kommt dein Impressum rein.</p>
+    <button type="button" onclick="toggleImpressum(false)">Schließen</button>
+</dialog>
     </main>
 </body>
 </html>

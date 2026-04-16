@@ -185,14 +185,14 @@ class Character extends MovableObject {
     }
 
     // Startet einen Sprung mit Sound.
-    jump(power = 30) {
-        if (this.speedY !== 0) {
-            return;
-        }
-
-        super.jump(power);
-        this.world.playJumpSound();
+    jump(power = 22) {
+    if (this.speedY !== 0) {
+        return;
     }
+
+    super.jump(power);
+    this.world.playJumpSound();
+}
 
     // Spielt die Todesbilder nacheinander ab.
     playDeadAnimation() {
