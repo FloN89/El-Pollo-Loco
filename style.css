@@ -6,6 +6,7 @@
 
 :root {
     --game-font: 'Zabars', Arial, sans-serif;
+    --text-font: Arial, Helvetica, sans-serif;
     --canvas-bg-image: none;
     --page-padding: clamp(8px, 2vh, 24px);
     --stage-gap: clamp(8px, 1.5vh, 20px);
@@ -40,6 +41,14 @@ body {
     align-items: center;
     padding: var(--page-padding);
     background: linear-gradient(180deg, #f7d07a 0%, #f39c35 100%);
+}
+
+body.overlay-open {
+    overflow: hidden;
+}
+
+button {
+    cursor: pointer;
 }
 
 .game-page {
@@ -91,34 +100,46 @@ canvas {
     background: transparent;
 }
 
+.fullscreen-btn,
+.stage-overlay-btn,
+.page-imprint-link,
+.overlay-close,
+.overlay-action-btn {
+    border: none;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    transition: background-color 150ms ease, transform 150ms ease, opacity 150ms ease;
+}
+
+.fullscreen-btn:hover,
+.stage-overlay-btn:hover,
+.page-imprint-link:hover,
+.overlay-close:hover,
+.overlay-action-btn:hover {
+    background: rgba(0, 0, 0, 0.76);
+}
+
 .fullscreen-btn {
     position: absolute;
     top: 16px;
     right: 16px;
-    z-index: 5;
+    left: auto;
+    z-index: 8;
     width: 52px;
     height: 52px;
-    border: none;
     border-radius: 16px;
-    background: rgba(0, 0, 0, 0.6);
-    color: #ffffff;
     font-size: 1.5rem;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
-}
-
-.fullscreen-btn:hover {
-    background: rgba(0, 0, 0, 0.72);
 }
 
 .rotate-device-hint {
     display: none;
     position: absolute;
     inset: 0;
-    z-index: 6;
+    z-index: 20;
     align-items: center;
     justify-content: center;
     padding: 24px;
@@ -134,52 +155,66 @@ canvas {
     line-height: 1.2;
 }
 
-.page-imprint-link,
-.start-screen-imprint {
-    text-decoration: none;
-    color: #ffffff;
-    background: rgba(0, 0, 0, 0.58);
+.stage-overlay-btn,
+.page-imprint-link {
     border: 2px solid rgba(255, 255, 255, 0.32);
     border-radius: 999px;
     letter-spacing: 1px;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
 }
 
-.page-imprint-link {
-    position: fixed;
-    left: 50%;
-    bottom: 12px;
-    transform: translateX(-50%);
-    z-index: 10;
-    padding: 10px 22px;
-    font-size: 1.1rem;
+.stage-overlay-btn {
+    position: absolute;
+    z-index: 9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.page-imprint-link:hover,
-.start-screen-imprint:hover {
-    background: rgba(0, 0, 0, 0.72);
+.game-stage.show-start-screen-actions .stage-overlay-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.start-screen-help {
+    top: 16px;
+    right: 80px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    padding: 0;
+    border-radius: 16px;
+}
+
+.help-button-icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+    object-fit: contain;
+    pointer-events: none;
 }
 
 .start-screen-imprint {
-    position: absolute;
+    display: none;
     left: 50%;
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
-    z-index: 7;
-    display: none;
-    align-items: center;
-    justify-content: center;
     min-width: 148px;
     padding: 10px 18px;
     font-size: 1rem;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 160ms ease-in-out;
 }
 
-.game-stage.show-start-screen-imprint .start-screen-imprint {
-    opacity: 1;
-    pointer-events: auto;
+.page-imprint-link {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    z-index: 10;
+    padding: 10px 22px;
+    font-size: 1.1rem;
+    transform: none;
 }
 
 .mobile-controls {
@@ -245,6 +280,129 @@ canvas {
     letter-spacing: 1px;
 }
 
+.page-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 4vw, 32px);
+    background: rgba(16, 10, 5, 0.82);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+
+.page-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.overlay-panel {
+    position: relative;
+    width: min(860px, 100%);
+    max-height: min(88dvh, 900px);
+    overflow: auto;
+    padding: clamp(24px, 4vw, 40px);
+    padding-right: clamp(64px, 8vw, 88px);
+    border-radius: 28px;
+    color: #2c1603;
+    background:
+        linear-gradient(180deg, rgba(255, 246, 214, 0.98) 0%, rgba(250, 223, 157, 0.98) 100%);
+    border: 2px solid rgba(113, 54, 0, 0.2);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-panel h2,
+.overlay-panel h3,
+.overlay-close,
+.overlay-action-btn {
+    font-family: var(--game-font);
+}
+
+.overlay-panel p,
+.overlay-panel li,
+.overlay-panel strong {
+    font-family: var(--text-font);
+}
+
+.overlay-panel h2 {
+    margin: 0 0 12px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: 1px;
+    color: #5a2300;
+}
+
+.overlay-intro {
+    margin: 0 0 24px;
+    font-size: 1.05rem;
+    line-height: 1.55;
+}
+
+.help-grid,
+.imprint-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.overlay-card {
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.42);
+    border: 1px solid rgba(113, 54, 0, 0.12);
+}
+
+.overlay-card h3 {
+    margin: 0 0 12px;
+    font-size: 1.35rem;
+    color: #6b2d00;
+}
+
+.overlay-card p {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.overlay-list {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 8px;
+}
+
+.overlay-list li {
+    line-height: 1.45;
+}
+
+.overlay-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.overlay-action-btn {
+    min-width: 160px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
 @media (max-width: 726px) {
     :root {
         --stage-safe-height: calc(100dvh - (var(--page-padding) * 2) - 56px - var(--stage-gap));
@@ -252,6 +410,11 @@ canvas {
 
     .game-stage {
         border-radius: 18px;
+    }
+
+    .help-grid,
+    .imprint-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -284,6 +447,24 @@ canvas {
         font-size: 0.95rem;
         padding: 0 14px;
     }
+
+    .start-screen-help {
+        right: 12px;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+    }
+
+    .help-button-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .start-screen-imprint {
+        min-width: 132px;
+        padding: 9px 14px;
+        font-size: 0.92rem;
+    }
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -315,13 +496,38 @@ canvas {
         box-shadow: none;
     }
 
+    .start-screen-help {
+        right: 12px;
+    }
+
+    .start-screen-imprint {
+        display: inline-flex;
+    }
+
     .fullscreen-btn,
     .page-imprint-link {
         display: none;
     }
 
-    .start-screen-imprint {
-        display: inline-flex;
+    .page-overlay {
+        padding: 0;
+    }
+
+    .overlay-panel {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        border-radius: 0;
+        padding:
+            calc(20px + env(safe-area-inset-top, 0px))
+            20px
+            calc(24px + env(safe-area-inset-bottom, 0px));
+        padding-right: 20px;
+    }
+
+    .overlay-close {
+        top: calc(12px + env(safe-area-inset-top, 0px));
+        right: 12px;
     }
 }
 

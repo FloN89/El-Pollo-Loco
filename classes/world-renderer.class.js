@@ -20,10 +20,14 @@ class WorldRenderer extends WorldGameplay {
 
     // Zeichnet die Buttons auf dem Startbildschirm.
     drawStartSceneButtons() {
-        this.drawActionButton(this.getSoundButtonLabel(), 24, 24, 160, 48, 'sound', this.getSoundButtonOptions());
-        this.drawActionButton('START GAME', this.canvas.width / 2 - 130, this.canvas.height - 110, 260, 64, 'start');
-    }
+    const startButtonWidth = 260;
+    const startButtonHeight = 64;
+    const startButtonX = (this.canvas.width - startButtonWidth) / 2;
+    const startButtonY = (this.canvas.height - startButtonHeight) / 2;
 
+    this.drawActionButton(this.getSoundButtonLabel(), 24, 24, 160, 48, 'sound', this.getSoundButtonOptions());
+    this.drawActionButton('START GAME', startButtonX, startButtonY, startButtonWidth, startButtonHeight, 'start');
+}
     // Liefert die Beschriftung des Soundbuttons.
     getSoundButtonLabel() {
         return this.soundEnabled ? 'SOUND ON' : 'SOUND OFF';

@@ -4,8 +4,15 @@ let keyboard = new Keyboard();
 let fullscreenButton;
 let gameStage;
 let startScreenStateInterval;
+let activeOverlayId = null;
 
-const keyBindings = { ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowDown: 'DOWN', Space: 'SPACE', KeyD: 'D' };
+const keyBindings = {
+    ArrowLeft: 'LEFT',
+    ArrowRight: 'RIGHT',
+    ArrowDown: 'DOWN',
+    Space: 'SPACE',
+    KeyD: 'D'
+};
 
 // Initialisiert das Spiel nach dem Laden der Seite.
 function initializeGame() {
@@ -18,7 +25,8 @@ function initializeGame() {
     setupFullscreenButton();
     setupMobileControls();
     setupAudioUnlock();
-    synchronizeStartScreenImprint();
+    setupOverlays();
+    synchronizeStartScreenOverlayButtons();
 }
 
 // Startet das Spiel bei Bedarf.
@@ -28,6 +36,7 @@ function startGameIfNeeded() {
     }
 
     world.handleUserInteraction();
+
     if (!world.gameStarted) {
         world.startGame();
     }
@@ -48,18 +57,121 @@ function handleAnyUserInteraction() {
     }
 }
 
-// Hält den Impressum-Link auf dem Startbildschirm synchron.
-function synchronizeStartScreenImprint() {
+// Richtet alle Overlay-Ereignisse ein.
+function setupOverlays() {
+    bindOverlayOpenButtons();
+    bindOverlayCloseButtons();
+    bindOverlayBackdropClicks();
+}
+
+// Bindet Buttons zum Öffnen eines Overlays.
+function bindOverlayOpenButtons() {
+    document.querySelectorAll('[data-open-overlay]').forEach((button) => {
+        button.addEventListener('click', handleOverlayOpenClick);
+    });
+}
+
+// Öffnet das gewünschte Overlay.
+function handleOverlayOpenClick(event) {
+    event.preventDefault();
+    openOverlay(event.currentTarget.dataset.openOverlay);
+}
+
+// Bindet Buttons zum Schließen eines Overlays.
+function bindOverlayCloseButtons() {
+    document.querySelectorAll('[data-close-overlay]').forEach((button) => {
+        button.addEventListener('click', handleOverlayCloseClick);
+    });
+}
+
+// Schließt das gewünschte Overlay.
+function handleOverlayCloseClick(event) {
+    event.preventDefault();
+    closeOverlay(event.currentTarget.dataset.closeOverlay);
+}
+
+// Schließt Overlays beim Klick auf den Hintergrund.
+function bindOverlayBackdropClicks() {
+    document.querySelectorAll('.page-overlay').forEach((overlay) => {
+        overlay.addEventListener('click', handleOverlayBackdropClick);
+    });
+}
+
+// Reagiert auf Hintergrundklicks eines Overlays.
+function handleOverlayBackdropClick(event) {
+    if (event.target.classList.contains('page-overlay')) {
+        closeOverlay(event.currentTarget.id);
+    }
+}
+
+// Öffnet ein Overlay per ID.
+function openOverlay(overlayId) {
+    const overlay = document.getElementById(overlayId);
+
+    if (!overlay) {
+        return;
+    }
+
+    closeOverlay(activeOverlayId);
+    activeOverlayId = overlayId;
+    overlay.classList.add('is-visible');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('overlay-open');
+}
+
+// Schließt ein Overlay per ID.
+function closeOverlay(overlayId = activeOverlayId) {
+    if (!overlayId) {
+        return;
+    }
+
+    const overlay = document.getElementById(overlayId);
+
+    if (!overlay) {
+        return;
+    }
+
+    overlay.classList.remove('is-visible');
+    overlay.setAttribute('aria-hidden', 'true');
+
+    if (activeOverlayId === overlayId) {
+        activeOverlayId = null;
+    }
+
+    if (!hasOpenOverlay()) {
+        document.body.classList.remove('overlay-open');
+    }
+}
+
+// Prüft, ob ein Overlay geöffnet ist.
+function hasOpenOverlay() {
+    return !!document.querySelector('.page-overlay.is-visible');
+}
+
+// Öffnet oder schließt das Impressum.
+function toggleImpressum(show) {
+    show ? openOverlay('impressum-overlay') : closeOverlay('impressum-overlay');
+}
+
+// Öffnet oder schließt die Hilfe.
+function toggleHelp(show) {
+    show ? openOverlay('help-overlay') : closeOverlay('help-overlay');
+}
+
+// Hält die Startscreen-Buttons synchron.
+function synchronizeStartScreenOverlayButtons() {
     if (!gameStage) {
         return;
     }
 
-    startScreenStateInterval = setInterval(updateStartScreenImprintState, 120);
+    clearInterval(startScreenStateInterval);
+    updateStartScreenOverlayState();
+    startScreenStateInterval = setInterval(updateStartScreenOverlayState, 120);
 }
 
 // Aktualisiert die Startscreen-Klasse.
-function updateStartScreenImprintState() {
-    gameStage.classList.toggle('show-start-screen-imprint', !!world && !world.gameStarted);
+function updateStartScreenOverlayState() {
+    gameStage.classList.toggle('show-start-screen-actions', !!world && !world.gameStarted);
 }
 
 // Bindet den Klick auf das Canvas.
@@ -69,7 +181,7 @@ function bindCanvasEvents() {
 
 // Reagiert auf Canvas-Klicks.
 function handleCanvasClick(event) {
-    if (!world) {
+    if (!world || hasOpenOverlay()) {
         return;
     }
 
@@ -82,7 +194,11 @@ function getCanvasPosition(event) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    return { x: (event.clientX - rect.left) * scaleX, y: (event.clientY - rect.top) * scaleY };
+
+    return {
+        x: (event.clientX - rect.left) * scaleX,
+        y: (event.clientY - rect.top) * scaleY
+    };
 }
 
 // Richtet die Tastatursteuerung ein.
@@ -95,14 +211,21 @@ function bindKeyboardEvents() {
 function handleWindowKeyDown(event) {
     handleAnyUserInteraction();
 
+    if (event.code === 'Space') {
+        event.preventDefault();
+    }
+
+    if (hasOpenOverlay()) {
+        if (event.code === 'Escape') {
+            closeOverlay();
+        }
+        return;
+    }
+
     if (world && !world.gameStarted && isStartKey(event.code)) {
         event.preventDefault();
         startGameIfNeeded();
         return;
-    }
-
-    if (event.code === 'Space') {
-        event.preventDefault();
     }
 
     if (!world || world.gameOver || world.gameWon) {
@@ -110,10 +233,6 @@ function handleWindowKeyDown(event) {
     }
 
     setPressedKeyState(event.code, true);
-}
-
-function isStartKey(code) {
-    return code === 'Enter';
 }
 
 // Reagiert auf losgelassene Tasten.
@@ -134,6 +253,7 @@ function setPressedKeyState(code, isPressed) {
     }
 
     const propertyName = keyBindings[code];
+
     if (propertyName) {
         keyboard[propertyName] = isPressed;
     }
@@ -157,6 +277,7 @@ async function toggleFullscreenMode() {
     } catch (error) {
         console.error('Vollbild konnte nicht aktiviert werden.', error);
     }
+
     updateFullscreenIcon();
 }
 
@@ -178,9 +299,11 @@ function setupMobileControls() {
 // Bindet Touch- und Mausereignisse an einen Button.
 function bindPressButton(buttonId, keyName) {
     const button = document.getElementById(buttonId);
+
     if (!button) {
         return;
     }
+
     bindButtonEvent(button, 'touchstart', handlePressStart.bind(null, keyName), { passive: false });
     bindButtonEvent(button, 'touchend', handlePressEnd.bind(null, keyName), { passive: false });
     bindButtonEvent(button, 'touchcancel', handlePressEnd.bind(null, keyName), { passive: false });
@@ -197,14 +320,19 @@ function bindButtonEvent(button, eventName, handler, options) {
 // Reagiert auf das Drücken eines mobilen Buttons.
 function handlePressStart(keyName, event) {
     event.preventDefault();
-    if (!world) {
+
+    if (!world || hasOpenOverlay()) {
+        keyboard[keyName] = false;
         return;
     }
+
     world.handleUserInteraction();
+
     if (world.gameOver || world.gameWon) {
         keyboard[keyName] = false;
         return;
     }
+
     startGameIfNeeded();
     keyboard[keyName] = true;
 }
@@ -213,18 +341,4 @@ function handlePressStart(keyName, event) {
 function handlePressEnd(keyName, event) {
     event.preventDefault();
     keyboard[keyName] = false;
-}
-
-function toggleImpressum(show) {
-    const dialog = document.getElementById('impressum-dialog');
-
-    if (!dialog) {
-        return;
-    }
-
-    if (show) {
-        dialog.showModal();
-    } else {
-        dialog.close();
-    }
 }

@@ -1,3 +1,39 @@
+const HEALTH_STATUS_BAR_IMAGES = [
+    'img/7_statusbars/1_statusbar/2_statusbar_health/blue/0.png',
+    'img/7_statusbars/1_statusbar/2_statusbar_health/blue/20.png',
+    'img/7_statusbars/1_statusbar/2_statusbar_health/blue/40.png',
+    'img/7_statusbars/1_statusbar/2_statusbar_health/blue/60.png',
+    'img/7_statusbars/1_statusbar/2_statusbar_health/blue/80.png',
+    'img/7_statusbars/1_statusbar/2_statusbar_health/blue/100.png'
+];
+
+const BOTTLE_STATUS_BAR_IMAGES = [
+    'img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/0.png',
+    'img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/20.png',
+    'img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/40.png',
+    'img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/60.png',
+    'img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/80.png',
+    'img/7_statusbars/1_statusbar/3_statusbar_bottle/blue/100.png'
+];
+
+const COIN_STATUS_BAR_IMAGES = [
+    'img/7_statusbars/1_statusbar/1_statusbar_coin/orange/0.png',
+    'img/7_statusbars/1_statusbar/1_statusbar_coin/orange/20.png',
+    'img/7_statusbars/1_statusbar/1_statusbar_coin/orange/40.png',
+    'img/7_statusbars/1_statusbar/1_statusbar_coin/orange/60.png',
+    'img/7_statusbars/1_statusbar/1_statusbar_coin/orange/80.png',
+    'img/7_statusbars/1_statusbar/1_statusbar_coin/orange/100.png'
+];
+
+const ENDBOSS_STATUS_BAR_IMAGES = [
+    'img/7_statusbars/2_statusbar_endboss/orange/orange0.png',
+    'img/7_statusbars/2_statusbar_endboss/orange/orange20.png',
+    'img/7_statusbars/2_statusbar_endboss/orange/orange40.png',
+    'img/7_statusbars/2_statusbar_endboss/orange/orange60.png',
+    'img/7_statusbars/2_statusbar_endboss/orange/orange80.png',
+    'img/7_statusbars/2_statusbar_endboss/orange/orange100.png'
+];
+
 class StatusBar extends DrawableObject {
     x = 0;
     y = 0;
@@ -56,5 +92,26 @@ class StatusBar extends DrawableObject {
         }
 
         return 0;
+    }
+}
+
+class BottleStatusBar extends StatusBar {
+    // Erstellt die Flaschenleiste.
+    constructor() {
+        super({ x: 10, y: 50, percentage: 0, imagePaths: BOTTLE_STATUS_BAR_IMAGES });
+    }
+}
+
+class CoinStatusBar extends StatusBar {
+    // Erstellt die Münzleiste.
+    constructor() {
+        super({ x: 10, y: 90, percentage: 0, imagePaths: COIN_STATUS_BAR_IMAGES });
+    }
+}
+
+class EndbossStatusBar extends StatusBar {
+    // Erstellt die Endboss-Leiste.
+    constructor() {
+        super({ x: 500, y: 10, percentage: 100, imagePaths: ENDBOSS_STATUS_BAR_IMAGES });
     }
 }

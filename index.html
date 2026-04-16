@@ -6,64 +6,222 @@
     <link rel="shortcut icon" href="img/2_character_pepe/1_idle/idle/I-1.png" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <title>El Pollo Loco</title>
-    <script src="classes/drawable-object.class.js"></script>
-    <script src="classes/movable-object.class.js"></script>
-    <script src="classes/status-bar.class.js"></script>
-    <script src="classes/keyboard.class.js"></script>
-    <script src="classes/background-object.class.js"></script>
-    <script src="classes/bottle.class.js"></script>
-    <script src="classes/coin.class.js"></script>
-    <script src="classes/cloud.class.js"></script>
-    <script src="classes/bottle-status-bar.class.js"></script>
-    <script src="classes/coin-status-bar.class.js"></script>
-    <script src="classes/endboss-status-bar.class.js"></script>
-    <script src="classes/throwable-objects.class.js"></script>
-    <script src="classes/chicken.class.js"></script>
-    <script src="classes/endboss.class.js"></script>
-    <script src="classes/character.class.js"></script>
-    <script src="classes/level.class.js"></script>
-    <script src="levels/level1.js"></script>
-    <script src="classes/world-base.class.js"></script>
-    <script src="classes/world-audio.class.js"></script>
-    <script src="classes/world-gameplay.class.js"></script>
-    <script src="classes/world-renderer.class.js"></script>
-    <script src="classes/world.class.js"></script>
-    <script src="js/game.js"></script>
+
+<script src="classes/drawable-object.class.js"></script>
+<script src="classes/movable-object.class.js"></script>
+<script src="classes/status-bar.class.js"></script>
+<script src="classes/keyboard.class.js"></script>
+<script src="classes/background-object.class.js"></script>
+<script src="classes/bottle.class.js"></script>
+<script src="classes/coin.class.js"></script>
+<script src="classes/cloud.class.js"></script>
+<script src="classes/throwable-objects.class.js"></script>
+<script src="classes/chicken.class.js"></script>
+<script src="classes/endboss.class.js"></script>
+<script src="classes/character.class.js"></script>
+<script src="classes/level.class.js"></script>
+<script src="levels/level1.js"></script>
+<script src="classes/world-base.class.js"></script>
+<script src="classes/world-audio.class.js"></script>
+<script src="classes/world-gameplay.class.js"></script>
+<script src="classes/world-renderer.class.js"></script>
+<script src="classes/world.class.js"></script>
+<script src="js/game.js"></script>
 </head>
 <body onload="initializeGame()">
     <main class="game-page">
         <h1>El Pollo Loco</h1>
+
         <div class="game-stage" id="game-stage">
             <button id="fullscreen-btn" class="fullscreen-btn" type="button" aria-label="Vollbild umschalten">⛶</button>
-            <div class="rotate-device-hint"><span>Bitte Tablet oder Handy ins Querformat drehen</span></div>
+
+            <button
+                id="start-screen-help"
+                class="stage-overlay-btn start-screen-help"
+                type="button"
+                data-open-overlay="help-overlay"
+                aria-haspopup="dialog"
+                aria-controls="help-overlay"
+                aria-label="Hilfe öffnen">
+                <img src="img/info- icon.png" alt="" class="help-button-icon" aria-hidden="true">
+            </button>
+
+            <div class="rotate-device-hint">
+                <span>Bitte Tablet oder Handy ins Querformat drehen</span>
+            </div>
+
             <canvas id="canvas" width="720" height="480"></canvas>
-            <a id="start-screen-imprint" class="start-screen-imprint" href="impressum.html" target="_blank" rel="noopener noreferrer" aria-label="Impressum öffnen">Impressum</a>
+
+            <button
+                id="start-screen-imprint"
+                class="stage-overlay-btn start-screen-imprint"
+                type="button"
+                data-open-overlay="impressum-overlay"
+                aria-haspopup="dialog"
+                aria-controls="impressum-overlay">
+                Impressum
+            </button>
+
             <div class="mobile-controls">
                 <div class="mobile-controls-move">
                     <button id="btn-jump" class="mobile-btn mobile-btn-jump" type="button">↑</button>
+
                     <div class="mobile-controls-bottom">
                         <button id="btn-left" class="mobile-btn" type="button">←</button>
                         <button id="btn-right" class="mobile-btn" type="button">→</button>
                     </div>
                 </div>
+
                 <div class="mobile-controls-throw">
                     <button id="btn-throw" class="mobile-btn mobile-btn-throw" type="button">THROW</button>
                 </div>
             </div>
         </div>
-       <a id="start-screen-imprint" class="start-screen-imprint" href="#" onclick="toggleImpressum(true); return false;">
-    Impressum
-</a>
 
-<a class="page-imprint-link" href="#" onclick="toggleImpressum(true); return false;">
-    Impressum
-</a>
+        <button
+            class="page-imprint-link"
+            type="button"
+            data-open-overlay="impressum-overlay"
+            aria-haspopup="dialog"
+            aria-controls="impressum-overlay">
+            Impressum
+        </button>
 
-<dialog id="impressum-dialog" class="impressum-dialog">
-    <h2>Impressum</h2>
-    <p>Hier kommt dein Impressum rein.</p>
-    <button type="button" onclick="toggleImpressum(false)">Schließen</button>
-</dialog>
+        <section
+            id="help-overlay"
+            class="page-overlay"
+            aria-hidden="true">
+            <div
+                class="overlay-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="help-overlay-title">
+                <button
+                    class="overlay-close"
+                    type="button"
+                    data-close-overlay="help-overlay"
+                    aria-label="Hilfe schließen">
+                    ✕
+                </button>
+
+                <h2 id="help-overlay-title">Spielhilfe</h2>
+                <p class="overlay-intro">
+                    Hier findest du die wichtigsten Steuerungen und Ziele, damit du direkt loslegen kannst.
+                </p>
+
+                <div class="help-grid">
+                    <article class="overlay-card">
+                        <h3>Steuerung Desktop</h3>
+                        <ul class="overlay-list">
+                            <li><strong>← / →</strong> bewegen Pepe nach links und rechts.</li>
+                            <li><strong>Leertaste</strong> oder <strong>↑</strong> zum Springen.</li>
+                            <li><strong>D</strong> wirft eine eingesammelte Flasche.</li>
+                            <li><strong>Enter</strong> oder <strong>Leertaste</strong> startet das Spiel.</li>
+                        </ul>
+                    </article>
+
+                    <article class="overlay-card">
+                        <h3>Steuerung Mobile</h3>
+                        <ul class="overlay-list">
+                            <li>Links unten findest du <strong>Springen</strong>, <strong>Links</strong> und <strong>Rechts</strong>.</li>
+                            <li>Rechts unten wirfst du mit dem <strong>THROW</strong>-Button Flaschen.</li>
+                            <li>Im Hochformat erscheint ein Hinweis zum Drehen ins Querformat.</li>
+                        </ul>
+                    </article>
+
+                    <article class="overlay-card">
+                        <h3>Dein Ziel</h3>
+                        <ul class="overlay-list">
+                            <li>Sammle <strong>Flaschen</strong> und <strong>Münzen</strong> ein.</li>
+                            <li>Besiege normale Hühner durch einen Sprung von oben oder mit einer Flasche.</li>
+                            <li>Den Endboss besiegst du nur zuverlässig mit Flaschenwürfen.</li>
+                        </ul>
+                    </article>
+
+                    <article class="overlay-card">
+                        <h3>Wichtige Hinweise</h3>
+                        <ul class="overlay-list">
+                            <li>Du kannst maximal <strong>5 Flaschen</strong> gleichzeitig tragen.</li>
+                            <li>Der Sound lässt sich auf dem Startscreen ein- und ausschalten.</li>
+                            <li>Nach Sieg oder Niederlage kommst du über <strong>ZURÜCK</strong> wieder zum Startbildschirm.</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="overlay-actions">
+                    <button class="overlay-action-btn" type="button" data-close-overlay="help-overlay">
+                        Schließen
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section
+            id="impressum-overlay"
+            class="page-overlay"
+            aria-hidden="true">
+            <div
+                class="overlay-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="impressum-overlay-title">
+                <button
+                    class="overlay-close"
+                    type="button"
+                    data-close-overlay="impressum-overlay"
+                    aria-label="Impressum schließen">
+                    ✕
+                </button>
+
+                <h2 id="impressum-overlay-title">Impressum</h2>
+                <p class="overlay-intro">
+                    Ersetze die Platzhalter unten einfach mit deinen echten Daten.
+                </p>
+
+                <div class="imprint-grid">
+                    <article class="overlay-card">
+                        <h3>Angaben gemäß § 5 TMG</h3>
+                        <p>
+                            [Vorname Nachname]<br>
+                            [Straße und Hausnummer]<br>
+                            [PLZ Ort]<br>
+                            [Land]
+                        </p>
+                    </article>
+
+                    <article class="overlay-card">
+                        <h3>Kontakt</h3>
+                        <p>
+                            Telefon: [Telefonnummer]<br>
+                            E-Mail: [E-Mail-Adresse]
+                        </p>
+                    </article>
+
+                    <article class="overlay-card">
+                        <h3>Verantwortlich für den Inhalt</h3>
+                        <p>
+                            [Vorname Nachname]<br>
+                            [Straße und Hausnummer]<br>
+                            [PLZ Ort]
+                        </p>
+                    </article>
+
+                    <article class="overlay-card">
+                        <h3>Hinweis</h3>
+                        <p>
+                            Falls du keine geschäftsmäßige Website betreibst, kann der genaue Pflichtumfang abweichen.
+                            Trage hier nur die Angaben ein, die für deinen Fall wirklich erforderlich sind.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="overlay-actions">
+                    <button class="overlay-action-btn" type="button" data-close-overlay="impressum-overlay">
+                        Schließen
+                    </button>
+                </div>
+            </div>
+        </section>
     </main>
 </body>
 </html>
