@@ -130,8 +130,11 @@ canvas {
     right: 70px;
     left: auto;
     width: 46px;
+    height: 46px;
+    min-height: 46px;
     padding: 0;
 }
+
 
 .start-screen-imprint {
     bottom: 16px;
@@ -141,8 +144,8 @@ canvas {
 }
 
 .help-button-icon {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
 }
 

@@ -161,7 +161,7 @@ function handleStartKey(code) {
 
 /** Prüft, ob die Taste das Spiel startet. */
 function isStartKey(code) {
-    return code === 'Enter' || code === 'Space';
+    return code === 'Enter';
 }
 
 /** Prüft, ob Tasten ins Spiel dürfen. */

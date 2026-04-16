@@ -196,22 +196,22 @@ class WorldGameplay extends WorldAudio {
     }
 
     /** Prüft das Verhalten des Endbosses. */
-    checkEndbossBehavior() {
-        const endboss = this.getEndboss();
+checkEndbossBehavior() {
+    const endboss = this.getEndboss();
 
-        if (!endboss || endboss.isBossDead) {
-            return;
-        }
-
-        if (endboss.updateBehavior(this.character) && !this.character.isHurt()) {
-            this.damageCharacter(endboss.attackDamage);
-        }
+    if (!endboss || endboss.isBossDead) {
+        return;
     }
 
+    if (endboss.updateBehavior(this.character) && !this.character.isHurt()) {
+        this.damageCharacter(20);
+    }
+}
+
     /** Fügt dem Charakter Schaden zu. */
-         damageCharacter(amount) {
-            this.character.hit(amount);
-            this.playHitSound();
+damageCharacter(amount = 20) {
+    this.character.hit(amount);
+    this.playHitSound();
 }
 
     /** Entfernt abgeschlossene Wurfobjekte. */
@@ -232,20 +232,20 @@ class WorldGameplay extends WorldAudio {
     }
 
     /** Verarbeitet eine Gegnerkollision. */
-    handleEnemyCollision(enemy) {
-        if (!this.character.isCollidingWith(enemy)) {
-            return;
-        }
-
-        if (this.canJumpOnEnemy(enemy)) {
-            this.jumpOnChicken(enemy);
-            return;
-        }
-
-        if (this.canEnemyDamageCharacter(enemy)) {
-            this.damageCharacter(5);
-        }
+handleEnemyCollision(enemy) {
+    if (!this.character.isCollidingWith(enemy)) {
+        return;
     }
+
+    if (this.canJumpOnEnemy(enemy)) {
+        this.jumpOnChicken(enemy);
+        return;
+    }
+
+    if (this.canEnemyDamageCharacter(enemy)) {
+        this.damageCharacter(20);
+    }
+}
 
     /** Prüft, ob ein Gegner angesprungen werden kann. */
     canJumpOnEnemy(enemy) {

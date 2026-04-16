@@ -3,7 +3,7 @@ class ThrowableObjects extends MovableObject {
     height = 70;
     groundY = 360;
     speedY = 22;
-    throwSpeed = 12;
+    throwSpeed = 5;
     isBroken = false;
     isFinished = false;
 
@@ -44,9 +44,20 @@ class ThrowableObjects extends MovableObject {
 
     // Bewegt die Flasche im Flug.
     updateFlight() {
-        if (!this.isBroken) {
-            this.x += this.throwSpeed;
+        if (this.isBroken || this.isFinished) {
+            return;
         }
+
+        this.x += this.throwSpeed;
+
+        if (this.hasHitGround()) {
+            this.finish();
+        }
+    }
+
+    // Prüft, ob die Flasche auf dem Boden angekommen ist.
+    hasHitGround() {
+        return this.y >= this.groundY && this.speedY <= 0;
     }
 
     // Wechselt das passende Bild.
@@ -61,11 +72,12 @@ class ThrowableObjects extends MovableObject {
 
     // Löst die Splash-Animation aus.
     splash() {
-        if (this.isBroken) {
+        if (this.isBroken || this.isFinished) {
             return;
         }
 
         this.isBroken = true;
+        this.throwSpeed = 0;
         this.speedY = 0;
         this.acceleration = 0;
         this.scheduleFinish();
@@ -79,5 +91,8 @@ class ThrowableObjects extends MovableObject {
     // Beendet das Wurfobjekt.
     finish() {
         this.isFinished = true;
+        this.throwSpeed = 0;
+        this.speedY = 0;
+        this.acceleration = 0;
     }
 }

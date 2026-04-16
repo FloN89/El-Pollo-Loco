@@ -248,6 +248,11 @@ class Character extends MovableObject {
         return this.world.keyboard.RIGHT || this.world.keyboard.LEFT;
     }
 
+    /** Nutzt die kurze Hurt-Dauer des Charakters. */
+isHurt(duration = this.hurtDuration) {
+    return super.isHurt(duration);
+}
+
     /** Startet einen Sprung mit Sound. */
     jump(power = 22) {
         if (this.speedY !== 0) {
