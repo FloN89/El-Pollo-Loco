@@ -1,5 +1,5 @@
 class WorldRenderer extends WorldGameplay {
-    // Zeichnet die komplette Szene.
+    /** Zeichnet die komplette Szene. */
     draw() {
         this.clearCanvas();
         this.actionButtons = {};
@@ -7,33 +7,33 @@ class WorldRenderer extends WorldGameplay {
         requestAnimationFrame(this.draw.bind(this));
     }
 
-    // Löscht den sichtbaren Bereich.
+    /** Löscht den sichtbaren Bereich. */
     clearCanvas() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    // Zeichnet die Startsituation.
+    /** Zeichnet die Startsituation. */
     drawStartScene() {
         this.drawFullscreenImage(this.startScreenImage);
         this.drawStartSceneButtons();
     }
 
-    // Zeichnet die Buttons auf dem Startbildschirm.
+    /** Zeichnet die Buttons auf dem Startbildschirm. */
     drawStartSceneButtons() {
-    const startButtonWidth = 260;
-    const startButtonHeight = 64;
-    const startButtonX = (this.canvas.width - startButtonWidth) / 2;
-    const startButtonY = (this.canvas.height - startButtonHeight) / 2;
+        const width = 260;
+        const height = 64;
+        const x = (this.canvas.width - width) / 2;
+        const y = (this.canvas.height - height) / 2;
+        this.drawActionButton(this.getSoundButtonLabel(), 24, 24, 160, 48, 'sound', this.getSoundButtonOptions());
+        this.drawActionButton('START GAME', x, y, width, height, 'start');
+    }
 
-    this.drawActionButton(this.getSoundButtonLabel(), 24, 24, 160, 48, 'sound', this.getSoundButtonOptions());
-    this.drawActionButton('START GAME', startButtonX, startButtonY, startButtonWidth, startButtonHeight, 'start');
-}
-    // Liefert die Beschriftung des Soundbuttons.
+    /** Liefert die Beschriftung des Soundbuttons. */
     getSoundButtonLabel() {
         return this.soundEnabled ? 'SOUND ON' : 'SOUND OFF';
     }
 
-    // Liefert das Design des Soundbuttons.
+    /** Liefert das Design des Soundbuttons. */
     getSoundButtonOptions() {
         if (this.soundEnabled) {
             return this.createButtonOptions('#70d64f', '#1f5a15', '#15380d', `24px ${this.fontFamily}`, 14);
@@ -42,12 +42,12 @@ class WorldRenderer extends WorldGameplay {
         return this.createButtonOptions('#d8dadd', '#54585e', '#222831', `24px ${this.fontFamily}`, 14);
     }
 
-    // Baut ein Button-Designobjekt.
+    /** Baut ein Button-Designobjekt. */
     createButtonOptions(fillStyle, strokeStyle, textStyle, font, radius) {
         return { fillStyle, strokeStyle, textStyle, font, radius };
     }
 
-    // Zeichnet die laufende Spielszene.
+    /** Zeichnet die laufende Spielszene. */
     drawRunningScene() {
         this.drawWorld();
         this.drawUserInterface();
@@ -61,7 +61,7 @@ class WorldRenderer extends WorldGameplay {
         }
     }
 
-    // Zeichnet Weltobjekte mit Kameraversatz.
+    /** Zeichnet Weltobjekte mit Kameraversatz. */
     drawWorld() {
         this.context.translate(this.cameraX, 0);
         this.addObjectsToMap(this.level.backgroundObjects);
@@ -74,18 +74,20 @@ class WorldRenderer extends WorldGameplay {
         this.context.translate(-this.cameraX, 0);
     }
 
-    // Zeichnet Leisten und Zähler.
+    /** Zeichnet Leisten und Zähler. */
     drawUserInterface() {
         this.addToMap(this.statusBar);
         this.addToMap(this.bottleBar);
         this.addToMap(this.coinBar);
+
         if (this.shouldShowEndbossBar()) {
             this.addToMap(this.endbossBar);
         }
+
         this.drawCounters();
     }
 
-    // Zeichnet die Zahlenwerte der Sammlungen.
+    /** Zeichnet die Zahlenwerte der Sammlungen. */
     drawCounters() {
         this.context.font = `20px ${this.fontFamily}`;
         this.context.fillStyle = 'white';
@@ -93,20 +95,21 @@ class WorldRenderer extends WorldGameplay {
         this.context.fillText(`${this.collectedCoins}/${this.totalCoins}`, 165, 128);
     }
 
-    // Zeichnet ein bildfüllendes Motiv.
+    /** Zeichnet ein bildfüllendes Motiv. */
     drawFullscreenImage(image) {
         if (image.complete && image.naturalWidth > 0) {
             this.context.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
         }
     }
 
-    // Zeichnet den Endbildschirm mit Rück-Button.
+    /** Zeichnet den Endbildschirm mit Aktionsbuttons. */
     drawEndScreen(image) {
         this.drawScreenOverlay(image);
-        this.drawActionButton('ZURÜCK', this.canvas.width / 2 - 110, this.canvas.height - 96, 220, 58, 'back');
+        this.drawActionButton('HOME', this.canvas.width / 2 - 240, this.canvas.height - 96, 180, 58, 'home');
+        this.drawActionButton('NEUSTART', this.canvas.width / 2 + 20, this.canvas.height - 96, 220, 58, 'restart');
     }
 
-    // Zeichnet das halbtransparente Endscreen-Overlay.
+    /** Zeichnet das halbtransparente Endscreen-Overlay. */
     drawScreenOverlay(image) {
         this.context.save();
         this.context.fillStyle = 'rgba(0, 0, 0, 0.35)';
@@ -115,7 +118,7 @@ class WorldRenderer extends WorldGameplay {
         this.context.restore();
     }
 
-    // Zeichnet ein Bild proportional in den Zielbereich.
+    /** Zeichnet ein Bild proportional in den Zielbereich. */
     drawContainedOverlayImage(image, maxWidth, maxHeight) {
         if (!image.complete || image.naturalWidth === 0) {
             return;
@@ -127,7 +130,7 @@ class WorldRenderer extends WorldGameplay {
         this.context.globalAlpha = 1;
     }
 
-    // Zeichnet einen klickbaren Canvas-Button.
+    /** Zeichnet einen klickbaren Canvas-Button. */
     drawActionButton(label, x, y, width, height, actionName, options = {}) {
         this.actionButtons[actionName] = { x, y, width, height };
         const buttonOptions = this.mergeButtonOptions(options);
@@ -135,7 +138,7 @@ class WorldRenderer extends WorldGameplay {
         this.paintButtonLabel(label, x, y, width, height, buttonOptions);
     }
 
-    // Ergänzt Standardwerte für Buttons.
+    /** Ergänzt Standardwerte für Buttons. */
     mergeButtonOptions(options) {
         return {
             fillStyle: options.fillStyle || '#ffb300',
@@ -146,7 +149,7 @@ class WorldRenderer extends WorldGameplay {
         };
     }
 
-    // Malt die Buttonfläche.
+    /** Malt die Buttonfläche. */
     paintButtonShape(x, y, width, height, options) {
         this.context.save();
         this.context.fillStyle = options.fillStyle;
@@ -158,7 +161,7 @@ class WorldRenderer extends WorldGameplay {
         this.context.restore();
     }
 
-    // Malt die Buttonbeschriftung.
+    /** Malt die Buttonbeschriftung. */
     paintButtonLabel(label, x, y, width, height, options) {
         this.context.save();
         this.context.fillStyle = options.textStyle;
@@ -169,7 +172,7 @@ class WorldRenderer extends WorldGameplay {
         this.context.restore();
     }
 
-    // Zeichnet ein Rechteck mit runden Ecken.
+    /** Zeichnet ein Rechteck mit runden Ecken. */
     drawRoundedRectangle(x, y, width, height, radius) {
         this.context.beginPath();
         this.context.moveTo(x + radius, y);
@@ -184,7 +187,7 @@ class WorldRenderer extends WorldGameplay {
         this.context.closePath();
     }
 
-    // Berechnet die Bildgröße innerhalb eines Bereichs.
+    /** Berechnet die Bildgröße innerhalb eines Bereichs. */
     getContainedOverlaySize(image, maxWidth, maxHeight) {
         const ratio = Math.min(maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
         const width = image.naturalWidth * ratio;
@@ -192,24 +195,26 @@ class WorldRenderer extends WorldGameplay {
         return { width, height, x: (this.canvas.width - width) / 2, y: (this.canvas.height - height) / 2 };
     }
 
-    // Zeichnet mehrere Objekte nacheinander.
+    /** Zeichnet mehrere Objekte nacheinander. */
     addObjectsToMap(objects) {
         objects.forEach(this.addToMap.bind(this));
     }
 
-    // Zeichnet ein einzelnes Objekt.
+    /** Zeichnet ein einzelnes Objekt. */
     addToMap(drawableObject) {
         if (drawableObject.otherDirection) {
             this.flipImage(drawableObject);
         }
+
         drawableObject.draw(this.context);
         drawableObject.drawFrame(this.context);
+
         if (drawableObject.otherDirection) {
             this.restoreImageOrientation();
         }
     }
 
-    // Spiegelt ein Objekt horizontal.
+    /** Spiegelt ein Objekt horizontal. */
     flipImage(drawableObject) {
         this.context.save();
         this.context.translate(drawableObject.x + drawableObject.width / 2, 0);
@@ -217,7 +222,7 @@ class WorldRenderer extends WorldGameplay {
         this.context.translate(-drawableObject.x - drawableObject.width / 2, 0);
     }
 
-    // Hebt die Spiegelung wieder auf.
+    /** Hebt die Spiegelung wieder auf. */
     restoreImageOrientation() {
         this.context.restore();
     }

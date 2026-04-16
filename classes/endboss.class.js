@@ -53,7 +53,7 @@ class Endboss extends MovableObject {
         'img/4_enemie_boss_chicken/5_dead/G26.png'
     ];
 
-    // Erstellt den Endboss.
+    /** Erstellt den Endboss. */
     constructor(x = 3200, leftBorder = 2880, rightBorder = 3280) {
         super();
         this.loadImage(this.imagePathsAlert[0]);
@@ -68,12 +68,12 @@ class Endboss extends MovableObject {
         this.animate();
     }
 
-    // Startet die Bildanimation.
+    /** Startet die Bildanimation. */
     animate() {
         setInterval(this.updateAnimation.bind(this), 160);
     }
 
-    // Aktualisiert den aktuellen Zustand.
+    /** Aktualisiert den aktuellen Zustand. */
     updateBehavior(character) {
         if (this.isBossDead) {
             return false;
@@ -84,7 +84,7 @@ class Endboss extends MovableObject {
         return this.tryAttack(character);
     }
 
-    // Bewegt den Boss in seiner Arena.
+    /** Bewegt den Boss in seiner Arena. */
     moveInsideArena() {
         this.x += this.speed * this.direction;
 
@@ -93,12 +93,12 @@ class Endboss extends MovableObject {
         }
     }
 
-    // Dreht den Boss zum Charakter.
+    /** Dreht den Boss zum Charakter. */
     faceCharacter(character) {
         this.otherDirection = character.x > this.x;
     }
 
-    // Prüft, ob der Boss angreifen kann.
+    /** Prüft, ob der Boss angreifen kann. */
     tryAttack(character) {
         if (!this.isCharacterInAttackRange(character) || !this.isAttackReady()) {
             return false;
@@ -108,37 +108,40 @@ class Endboss extends MovableObject {
         return true;
     }
 
-    // Prüft die Angriffsreichweite.
+    /** Prüft die Angriffsreichweite. */
     isCharacterInAttackRange(character) {
         return Math.abs(this.x - character.x) < 140;
     }
 
-    // Prüft den Cooldown.
+    /** Prüft den Cooldown. */
     isAttackReady() {
         return Date.now() - this.lastAttackAt > this.attackCooldown;
     }
 
-    // Aktualisiert das Bossbild.
+    /** Aktualisiert das Bossbild. */
     updateAnimation() {
+        this.playAnimation(this.getCurrentAnimationImages());
+    }
+
+    /** Liefert die aktuelle Bildreihe. */
+    getCurrentAnimationImages() {
         if (this.isBossDead) {
-            this.playAnimation(this.imagePathsDead);
-            return;
+            return this.imagePathsDead;
         }
 
         if (this.isHurt()) {
-            this.playAnimation(this.imagePathsHurt);
-            return;
+            return this.imagePathsHurt;
         }
 
-        if (Date.now() - this.lastAttackAt < 450) {
-            this.playAnimation(this.imagePathsAttack);
-            return;
-        }
-
-        this.playAnimation(this.imagePathsWalking);
+        return this.isInAttackAnimation() ? this.imagePathsAttack : this.imagePathsWalking;
     }
 
-    // Verarbeitet Schaden.
+    /** Prüft, ob gerade die Angriffsanimation läuft. */
+    isInAttackAnimation() {
+        return Date.now() - this.lastAttackAt < 450;
+    }
+
+    /** Verarbeitet Schaden. */
     takeDamage(damage) {
         if (this.isBossDead) {
             return;

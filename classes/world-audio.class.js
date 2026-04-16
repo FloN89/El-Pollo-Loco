@@ -3,6 +3,9 @@ class WorldAudio extends WorldBase {
     isRunningSoundActive = false;
     backgroundMusic = null;
     runningSound = null;
+    snoreSound = null;
+    activeEffectSounds = [];
+    soundStorageKey = 'el-pollo-loco-sound';
 
     audioPaths = {
         backgroundMusic: 'audio/background music.mp3',
@@ -12,7 +15,8 @@ class WorldAudio extends WorldBase {
         bottle: 'audio/bottle sound.mp3',
         jump: 'audio/jump sound.mp3',
         winning: 'audio/winning sound.mp3',
-        gameOver: 'audio/game over sound.mp3'
+        gameOver: 'audio/game over sound.mp3',
+        snore: 'audio/snore.mp3'
     };
 
     effectVolume = {
@@ -24,20 +28,37 @@ class WorldAudio extends WorldBase {
         gameOver: 0.7
     };
 
+    /** Erstellt die Audioverwaltung. */
     constructor(canvas, keyboard) {
         super(canvas, keyboard);
+        this.loadSoundSetting();
         this.setupAudio();
         this.synchronizeAudioState();
     }
 
-    // Richtet alle Audiodateien ein.
+    /** Liest die gespeicherte Soundeinstellung. */
+    loadSoundSetting() {
+        const value = localStorage.getItem(this.soundStorageKey);
+
+        if (value !== null) {
+            this.soundEnabled = value === 'true';
+        }
+    }
+
+    /** Speichert die aktuelle Soundeinstellung. */
+    saveSoundSetting() {
+        localStorage.setItem(this.soundStorageKey, String(this.soundEnabled));
+    }
+
+    /** Richtet alle Audiodateien ein. */
     setupAudio() {
         this.backgroundMusic = this.createLoopingAudio(this.audioPaths.backgroundMusic, 0.22);
         this.runningSound = this.createLoopingAudio(this.audioPaths.running, 0.35);
+        this.snoreSound = this.createLoopingAudio(this.audioPaths.snore, 0.28);
         this.attemptAutomaticAudioStart();
     }
 
-    // Erstellt ein wiederholtes Audioelement.
+    /** Erstellt ein wiederholtes Audioelement. */
     createLoopingAudio(source, volume = 1) {
         const audio = new Audio(source);
         audio.preload = 'auto';
@@ -46,7 +67,7 @@ class WorldAudio extends WorldBase {
         return audio;
     }
 
-    // Erstellt ein einmaliges Effektgeräusch.
+    /** Erstellt ein einmaliges Effektgeräusch. */
     createEffectAudio(source, volume = 1) {
         const audio = new Audio(source);
         audio.preload = 'auto';
@@ -54,25 +75,27 @@ class WorldAudio extends WorldBase {
         return audio;
     }
 
-    // Versucht den Ton direkt beim Laden zu starten.
+    /** Versucht den Ton direkt beim Laden zu starten. */
     attemptAutomaticAudioStart() {
         this.playLoopingAudio(this.backgroundMusic);
-        this.runningSound.pause();
-        this.runningSound.currentTime = 0;
+        this.stopAudio(this.runningSound);
+        this.stopAudio(this.snoreSound);
     }
 
-    // Reagiert auf eine echte Nutzerinteraktion.
+    /** Reagiert auf eine echte Nutzerinteraktion. */
     handleUserInteraction() {
         this.synchronizeAudioState();
     }
 
-    // Synchronisiert alle laufenden Sounds.
+    /** Synchronisiert alle laufenden Sounds. */
     synchronizeAudioState() {
         this.synchronizeBackgroundMusic();
         this.synchronizeRunningSound();
+        this.synchronizeSnoreSound();
+        this.stopAllEffectSoundsIfMuted();
     }
 
-    // Hält die Hintergrundmusik aktuell.
+    /** Hält die Hintergrundmusik aktuell. */
     synchronizeBackgroundMusic() {
         if (!this.soundEnabled) {
             this.stopAudio(this.backgroundMusic);
@@ -82,19 +105,32 @@ class WorldAudio extends WorldBase {
         this.playLoopingAudio(this.backgroundMusic);
     }
 
-    // Hält das Laufgeräusch aktuell.
+    /** Hält das Laufgeräusch aktuell. */
     synchronizeRunningSound() {
         const shouldPlay = this.soundEnabled && this.isRunningSoundActive;
         shouldPlay ? this.playLoopingAudio(this.runningSound) : this.stopAudio(this.runningSound);
     }
 
-    // Startet oder stoppt das Laufgeräusch.
+    /** Hält das Schnarchen aktuell. */
+    synchronizeSnoreSound() {
+        const shouldPlay = this.soundEnabled && this.gameStarted && this.character?.isSleeping;
+        shouldPlay ? this.playLoopingAudio(this.snoreSound) : this.stopAudio(this.snoreSound);
+    }
+
+    /** Stoppt Effekt-Sounds beim Stummschalten. */
+    stopAllEffectSoundsIfMuted() {
+        if (!this.soundEnabled) {
+            this.stopAllEffectSounds();
+        }
+    }
+
+    /** Startet oder stoppt das Laufgeräusch. */
     updateRunningSound(isRunning) {
         this.isRunningSoundActive = isRunning;
         this.synchronizeRunningSound();
     }
 
-    // Startet ein Loop-Audio sicher.
+    /** Startet ein Loop-Audio sicher. */
     playLoopingAudio(audio) {
         if (!audio || !audio.paused) {
             return;
@@ -103,7 +139,7 @@ class WorldAudio extends WorldBase {
         audio.play().catch(() => {});
     }
 
-    // Stoppt ein Audioelement komplett.
+    /** Stoppt ein Audioelement komplett. */
     stopAudio(audio) {
         if (!audio) {
             return;
@@ -113,49 +149,75 @@ class WorldAudio extends WorldBase {
         audio.currentTime = 0;
     }
 
-    // Spielt einen benannten Effekt ab.
+    /** Spielt einen benannten Effekt ab. */
     playNamedEffect(name) {
         if (!this.soundEnabled) {
             return;
         }
 
         const audio = this.createEffectAudio(this.audioPaths[name], this.effectVolume[name]);
+        this.registerEffectAudio(audio);
         audio.play().catch(() => {});
     }
 
-    // Spielt das Münzgeräusch.
+    /** Merkt sich einen laufenden Effekt-Sound. */
+    registerEffectAudio(audio) {
+        this.activeEffectSounds.push(audio);
+        audio.addEventListener('ended', () => this.removeFinishedEffect(audio));
+    }
+
+    /** Entfernt einen beendeten Effekt-Sound. */
+    removeFinishedEffect(audio) {
+        this.activeEffectSounds = this.activeEffectSounds.filter((sound) => sound !== audio);
+    }
+
+    /** Stoppt alle Effekt-Sounds. */
+    stopAllEffectSounds() {
+        this.activeEffectSounds.forEach((audio) => this.stopAudio(audio));
+        this.activeEffectSounds = [];
+    }
+
+    /** Schaltet Ton an oder aus und speichert ihn. */
+    toggleSound() {
+        this.soundEnabled = !this.soundEnabled;
+        this.saveSoundSetting();
+        this.synchronizeAudioState();
+    }
+
+    /** Spielt das Münzgeräusch. */
     playCoinSound() {
         this.playNamedEffect('coin');
     }
 
-    // Spielt das Flaschenwurfgeräusch.
+    /** Spielt das Flaschenwurfgeräusch. */
     playBottleThrowSound() {
         this.playNamedEffect('bottle');
     }
 
-    // Spielt das Treffergeräusch.
+    /** Spielt das Treffergeräusch. */
     playHitSound() {
         this.playNamedEffect('hit');
     }
 
-    // Spielt das Sprunggeräusch.
+    /** Spielt das Sprunggeräusch. */
     playJumpSound() {
         this.playNamedEffect('jump');
     }
 
-    // Spielt das Sieggeräusch.
+    /** Spielt das Sieggeräusch. */
     playWinningSound() {
         this.playNamedEffect('winning');
     }
 
-    // Spielt das Game-Over-Geräusch.
+    /** Spielt das Game-Over-Geräusch. */
     playGameOverSound() {
         this.playNamedEffect('gameOver');
     }
 
-    // Stoppt alle Dauersounds.
+    /** Stoppt alle Dauersounds. */
     stopAllLoopingSounds() {
         this.stopAudio(this.backgroundMusic);
         this.stopAudio(this.runningSound);
+        this.stopAudio(this.snoreSound);
     }
 }

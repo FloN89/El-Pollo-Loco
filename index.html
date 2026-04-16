@@ -5,28 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="img/2_character_pepe/1_idle/idle/I-1.png" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/styles/responsive.css">
     <title>El Pollo Loco</title>
 
-<script src="classes/drawable-object.class.js"></script>
-<script src="classes/movable-object.class.js"></script>
-<script src="classes/status-bar.class.js"></script>
-<script src="classes/keyboard.class.js"></script>
-<script src="classes/background-object.class.js"></script>
-<script src="classes/bottle.class.js"></script>
-<script src="classes/coin.class.js"></script>
-<script src="classes/cloud.class.js"></script>
-<script src="classes/throwable-objects.class.js"></script>
-<script src="classes/chicken.class.js"></script>
-<script src="classes/endboss.class.js"></script>
-<script src="classes/character.class.js"></script>
-<script src="classes/level.class.js"></script>
-<script src="levels/level1.js"></script>
-<script src="classes/world-base.class.js"></script>
-<script src="classes/world-audio.class.js"></script>
-<script src="classes/world-gameplay.class.js"></script>
-<script src="classes/world-renderer.class.js"></script>
-<script src="classes/world.class.js"></script>
-<script src="js/game.js"></script>
+    <script src="classes/drawable-object.class.js"></script>
+    <script src="classes/movable-object.class.js"></script>
+    <script src="classes/status-bar.class.js"></script>
+    <script src="classes/keyboard.class.js"></script>
+    <script src="classes/background-object.class.js"></script>
+    <script src="classes/bottle.class.js"></script>
+    <script src="classes/coin.class.js"></script>
+    <script src="classes/cloud.class.js"></script>
+    <script src="classes/throwable-objects.class.js"></script>
+    <script src="classes/chicken.class.js"></script>
+    <script src="classes/small-chicken.class.js"></script>
+    <script src="classes/endboss.class.js"></script>
+    <script src="classes/character.class.js"></script>
+    <script src="classes/level.class.js"></script>
+    <script src="levels/level1.js"></script>
+    <script src="classes/world-base.class.js"></script>
+    <script src="classes/world-audio.class.js"></script>
+    <script src="classes/world-gameplay.class.js"></script>
+    <script src="classes/world-renderer.class.js"></script>
+    <script src="classes/world.class.js"></script>
+    <script src="js/game.js"></script>
 </head>
 <body onload="initializeGame()">
     <main class="game-page">
@@ -39,28 +41,24 @@
                 id="start-screen-help"
                 class="stage-overlay-btn start-screen-help"
                 type="button"
-                data-open-overlay="help-overlay"
                 aria-haspopup="dialog"
                 aria-controls="help-overlay"
                 aria-label="Hilfe öffnen">
                 <img src="img/info- icon.png" alt="" class="help-button-icon" aria-hidden="true">
             </button>
 
+            <a
+                id="start-screen-imprint"
+                class="stage-overlay-btn start-screen-imprint"
+                href="impressum.html">
+                Impressum
+            </a>
+
             <div class="rotate-device-hint">
                 <span>Bitte Tablet oder Handy ins Querformat drehen</span>
             </div>
 
             <canvas id="canvas" width="720" height="480"></canvas>
-
-            <button
-                id="start-screen-imprint"
-                class="stage-overlay-btn start-screen-imprint"
-                type="button"
-                data-open-overlay="impressum-overlay"
-                aria-haspopup="dialog"
-                aria-controls="impressum-overlay">
-                Impressum
-            </button>
 
             <div class="mobile-controls">
                 <div class="mobile-controls-move">
@@ -78,31 +76,11 @@
             </div>
         </div>
 
-        <button
-            class="page-imprint-link"
-            type="button"
-            data-open-overlay="impressum-overlay"
-            aria-haspopup="dialog"
-            aria-controls="impressum-overlay">
-            Impressum
-        </button>
+        <a class="page-imprint-link" href="impressum.html">Impressum</a>
 
-        <section
-            id="help-overlay"
-            class="page-overlay"
-            aria-hidden="true">
-            <div
-                class="overlay-panel"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="help-overlay-title">
-                <button
-                    class="overlay-close"
-                    type="button"
-                    data-close-overlay="help-overlay"
-                    aria-label="Hilfe schließen">
-                    ✕
-                </button>
+        <section id="help-overlay" class="page-overlay" aria-hidden="true">
+            <div class="overlay-panel" role="dialog" aria-modal="true" aria-labelledby="help-overlay-title">
+                <button class="overlay-close" id="help-overlay-close" type="button" aria-label="Hilfe schließen">✕</button>
 
                 <h2 id="help-overlay-title">Spielhilfe</h2>
                 <p class="overlay-intro">
@@ -133,8 +111,8 @@
                         <h3>Dein Ziel</h3>
                         <ul class="overlay-list">
                             <li>Sammle <strong>Flaschen</strong> und <strong>Münzen</strong> ein.</li>
-                            <li>Besiege normale Hühner durch einen Sprung von oben oder mit einer Flasche.</li>
-                            <li>Den Endboss besiegst du nur zuverlässig mit Flaschenwürfen.</li>
+                            <li>Besiege große und kleine Hühner per Sprung oder mit einer Flasche.</li>
+                            <li>Den Endboss besiegst du zuverlässig mit Flaschenwürfen.</li>
                         </ul>
                     </article>
 
@@ -142,83 +120,14 @@
                         <h3>Wichtige Hinweise</h3>
                         <ul class="overlay-list">
                             <li>Du kannst maximal <strong>5 Flaschen</strong> gleichzeitig tragen.</li>
-                            <li>Der Sound lässt sich auf dem Startscreen ein- und ausschalten.</li>
-                            <li>Nach Sieg oder Niederlage kommst du über <strong>ZURÜCK</strong> wieder zum Startbildschirm.</li>
+                            <li>Der Sound bleibt nach dem Umschalten gespeichert.</li>
+                            <li>Nach Sieg oder Niederlage kannst du <strong>NEUSTART</strong> oder <strong>HOME</strong> wählen.</li>
                         </ul>
                     </article>
                 </div>
 
                 <div class="overlay-actions">
-                    <button class="overlay-action-btn" type="button" data-close-overlay="help-overlay">
-                        Schließen
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <section
-            id="impressum-overlay"
-            class="page-overlay"
-            aria-hidden="true">
-            <div
-                class="overlay-panel"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="impressum-overlay-title">
-                <button
-                    class="overlay-close"
-                    type="button"
-                    data-close-overlay="impressum-overlay"
-                    aria-label="Impressum schließen">
-                    ✕
-                </button>
-
-                <h2 id="impressum-overlay-title">Impressum</h2>
-                <p class="overlay-intro">
-                    Ersetze die Platzhalter unten einfach mit deinen echten Daten.
-                </p>
-
-                <div class="imprint-grid">
-                    <article class="overlay-card">
-                        <h3>Angaben gemäß § 5 TMG</h3>
-                        <p>
-                            [Vorname Nachname]<br>
-                            [Straße und Hausnummer]<br>
-                            [PLZ Ort]<br>
-                            [Land]
-                        </p>
-                    </article>
-
-                    <article class="overlay-card">
-                        <h3>Kontakt</h3>
-                        <p>
-                            Telefon: [Telefonnummer]<br>
-                            E-Mail: [E-Mail-Adresse]
-                        </p>
-                    </article>
-
-                    <article class="overlay-card">
-                        <h3>Verantwortlich für den Inhalt</h3>
-                        <p>
-                            [Vorname Nachname]<br>
-                            [Straße und Hausnummer]<br>
-                            [PLZ Ort]
-                        </p>
-                    </article>
-
-                    <article class="overlay-card">
-                        <h3>Hinweis</h3>
-                        <p>
-                            Falls du keine geschäftsmäßige Website betreibst, kann der genaue Pflichtumfang abweichen.
-                            Trage hier nur die Angaben ein, die für deinen Fall wirklich erforderlich sind.
-                        </p>
-                    </article>
-                </div>
-
-                <div class="overlay-actions">
-                    <button class="overlay-action-btn" type="button" data-close-overlay="impressum-overlay">
-                        Schließen
-                    </button>
+                    <button class="overlay-action-btn" id="help-overlay-action" type="button">Schließen</button>
                 </div>
             </div>
         </section>

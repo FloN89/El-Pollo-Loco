@@ -1,195 +1,121 @@
 let canvas;
 let world;
 let keyboard = new Keyboard();
-let fullscreenButton;
 let gameStage;
-let startScreenStateInterval;
-let activeOverlayId = null;
+let fullscreenButton;
+let helpOverlay;
+let mobileButtons = [];
 
-const keyBindings = {
-    ArrowLeft: 'LEFT',
-    ArrowRight: 'RIGHT',
-    ArrowDown: 'DOWN',
-    Space: 'SPACE',
-    KeyD: 'D'
-};
-
-// Initialisiert das Spiel nach dem Laden der Seite.
+/** Initialisiert das Spiel nach dem Laden der Seite. */
 function initializeGame() {
-    canvas = document.getElementById('canvas');
-    gameStage = document.getElementById('game-stage');
-    fullscreenButton = document.getElementById('fullscreen-btn');
+    cacheElements();
     world = new World(canvas, keyboard);
+    setupAudioUnlock();
+    setupHelpOverlay();
+    synchronizeStartScreenOverlayButtons();
     bindCanvasEvents();
     bindKeyboardEvents();
     setupFullscreenButton();
     setupMobileControls();
-    setupAudioUnlock();
-    setupOverlays();
+}
+
+/** Sammelt wichtige DOM-Elemente. */
+function cacheElements() {
+    canvas = document.getElementById('canvas');
+    gameStage = document.getElementById('game-stage');
+    fullscreenButton = document.getElementById('fullscreen-btn');
+    helpOverlay = document.getElementById('help-overlay');
+    mobileButtons = Array.from(document.querySelectorAll('.mobile-btn'));
+}
+
+/** Startet das Spiel bei Bedarf. */
+function startGameIfNeeded() {
+    if (!world.gameStarted && !world.gameOver && !world.gameWon) {
+        world.startGame();
+        synchronizeStartScreenOverlayButtons();
+    }
+}
+
+/** Richtet Entsperrer für Audio ein. */
+function setupAudioUnlock() {
+    ['click', 'touchstart', 'keydown'].forEach((eventName) => {
+        document.addEventListener(eventName, handleAnyUserInteraction, { once: true });
+    });
+}
+
+/** Reagiert auf jede Nutzerinteraktion. */
+function handleAnyUserInteraction() {
+    world.handleUserInteraction();
     synchronizeStartScreenOverlayButtons();
 }
 
-// Startet das Spiel bei Bedarf.
-function startGameIfNeeded() {
-    if (!world) {
-        return;
-    }
-
-    world.handleUserInteraction();
-
-    if (!world.gameStarted) {
-        world.startGame();
-    }
+/** Richtet die Hilfe ein. */
+function setupHelpOverlay() {
+    bindHelpOpenButtons();
+    bindHelpCloseButtons();
 }
 
-// Richtet Entsperrer für Audio ein.
-function setupAudioUnlock() {
-    window.addEventListener('pointerdown', handleAnyUserInteraction, { passive: true });
-    window.addEventListener('touchstart', handleAnyUserInteraction, { passive: true });
-    window.addEventListener('keydown', handleAnyUserInteraction);
-    window.addEventListener('focus', handleAnyUserInteraction);
+/** Bindet alle Öffner für die Hilfe. */
+function bindHelpOpenButtons() {
+    document.getElementById('start-screen-help').addEventListener('click', openHelpOverlay);
 }
 
-// Reagiert auf jede Nutzerinteraktion.
-function handleAnyUserInteraction() {
-    if (world) {
-        world.handleUserInteraction();
-    }
-}
-
-// Richtet alle Overlay-Ereignisse ein.
-function setupOverlays() {
-    bindOverlayOpenButtons();
-    bindOverlayCloseButtons();
-    bindOverlayBackdropClicks();
-}
-
-// Bindet Buttons zum Öffnen eines Overlays.
-function bindOverlayOpenButtons() {
-    document.querySelectorAll('[data-open-overlay]').forEach((button) => {
-        button.addEventListener('click', handleOverlayOpenClick);
-    });
-}
-
-// Öffnet das gewünschte Overlay.
-function handleOverlayOpenClick(event) {
-    event.preventDefault();
-    openOverlay(event.currentTarget.dataset.openOverlay);
-}
-
-// Bindet Buttons zum Schließen eines Overlays.
-function bindOverlayCloseButtons() {
-    document.querySelectorAll('[data-close-overlay]').forEach((button) => {
-        button.addEventListener('click', handleOverlayCloseClick);
-    });
-}
-
-// Schließt das gewünschte Overlay.
-function handleOverlayCloseClick(event) {
-    event.preventDefault();
-    closeOverlay(event.currentTarget.dataset.closeOverlay);
-}
-
-// Schließt Overlays beim Klick auf den Hintergrund.
-function bindOverlayBackdropClicks() {
-    document.querySelectorAll('.page-overlay').forEach((overlay) => {
-        overlay.addEventListener('click', handleOverlayBackdropClick);
-    });
-}
-
-// Reagiert auf Hintergrundklicks eines Overlays.
-function handleOverlayBackdropClick(event) {
-    if (event.target.classList.contains('page-overlay')) {
-        closeOverlay(event.currentTarget.id);
-    }
-}
-
-// Öffnet ein Overlay per ID.
-function openOverlay(overlayId) {
-    const overlay = document.getElementById(overlayId);
-
-    if (!overlay) {
-        return;
-    }
-
-    closeOverlay(activeOverlayId);
-    activeOverlayId = overlayId;
-    overlay.classList.add('is-visible');
-    overlay.setAttribute('aria-hidden', 'false');
+/** Öffnet die Hilfe. */
+function openHelpOverlay() {
+    helpOverlay.classList.add('is-visible');
+    helpOverlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('overlay-open');
 }
 
-// Schließt ein Overlay per ID.
-function closeOverlay(overlayId = activeOverlayId) {
-    if (!overlayId) {
-        return;
-    }
+/** Bindet alle Schließer für die Hilfe. */
+function bindHelpCloseButtons() {
+    document.getElementById('help-overlay-close').addEventListener('click', closeHelpOverlay);
+    document.getElementById('help-overlay-action').addEventListener('click', closeHelpOverlay);
+    helpOverlay.addEventListener('click', handleHelpBackdropClick);
+}
 
-    const overlay = document.getElementById(overlayId);
+/** Schließt die Hilfe. */
+function closeHelpOverlay() {
+    helpOverlay.classList.remove('is-visible');
+    helpOverlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('overlay-open');
+}
 
-    if (!overlay) {
-        return;
-    }
-
-    overlay.classList.remove('is-visible');
-    overlay.setAttribute('aria-hidden', 'true');
-
-    if (activeOverlayId === overlayId) {
-        activeOverlayId = null;
-    }
-
-    if (!hasOpenOverlay()) {
-        document.body.classList.remove('overlay-open');
+/** Reagiert auf Klicks auf den Overlay-Hintergrund. */
+function handleHelpBackdropClick(event) {
+    if (event.target === helpOverlay) {
+        closeHelpOverlay();
     }
 }
 
-// Prüft, ob ein Overlay geöffnet ist.
-function hasOpenOverlay() {
-    return !!document.querySelector('.page-overlay.is-visible');
+/** Prüft, ob die Hilfe sichtbar ist. */
+function isHelpOpen() {
+    return helpOverlay.classList.contains('is-visible');
 }
 
-// Öffnet oder schließt das Impressum.
-function toggleImpressum(show) {
-    show ? openOverlay('impressum-overlay') : closeOverlay('impressum-overlay');
-}
-
-// Öffnet oder schließt die Hilfe.
-function toggleHelp(show) {
-    show ? openOverlay('help-overlay') : closeOverlay('help-overlay');
-}
-
-// Hält die Startscreen-Buttons synchron.
+/** Hält die Startscreen-Buttons synchron. */
 function synchronizeStartScreenOverlayButtons() {
-    if (!gameStage) {
-        return;
-    }
-
-    clearInterval(startScreenStateInterval);
-    updateStartScreenOverlayState();
-    startScreenStateInterval = setInterval(updateStartScreenOverlayState, 120);
+    updateStartScreenOverlayState(!world.gameStarted && !world.gameOver && !world.gameWon);
 }
 
-// Aktualisiert die Startscreen-Klasse.
-function updateStartScreenOverlayState() {
-    gameStage.classList.toggle('show-start-screen-actions', !!world && !world.gameStarted);
+/** Schaltet die Startscreen-Klasse. */
+function updateStartScreenOverlayState(shouldShow) {
+    gameStage.classList.toggle('show-start-screen-actions', shouldShow);
 }
 
-// Bindet den Klick auf das Canvas.
+/** Bindet den Klick auf das Canvas. */
 function bindCanvasEvents() {
     canvas.addEventListener('click', handleCanvasClick);
 }
 
-// Reagiert auf Canvas-Klicks.
+/** Reagiert auf Canvas-Klicks. */
 function handleCanvasClick(event) {
-    if (!world || hasOpenOverlay()) {
-        return;
-    }
-
     const position = getCanvasPosition(event);
     world.handleCanvasClick(position.x, position.y);
+    synchronizeStartScreenOverlayButtons();
 }
 
-// Rechnet Browser-Koordinaten auf Canvas um.
+/** Rechnet Browser-Koordinaten auf Canvas um. */
 function getCanvasPosition(event) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -201,65 +127,62 @@ function getCanvasPosition(event) {
     };
 }
 
-// Richtet die Tastatursteuerung ein.
+/** Richtet die Tastatursteuerung ein. */
 function bindKeyboardEvents() {
     window.addEventListener('keydown', handleWindowKeyDown);
     window.addEventListener('keyup', handleWindowKeyUp);
 }
 
-// Reagiert auf gedrückte Tasten.
+/** Reagiert auf gedrückte Tasten. */
 function handleWindowKeyDown(event) {
-    handleAnyUserInteraction();
+    handleStartKey(event.code);
 
-    if (event.code === 'Space') {
-        event.preventDefault();
+    if (canReadKeyboard()) {
+        setPressedKeyState(event.code, true);
     }
-
-    if (hasOpenOverlay()) {
-        if (event.code === 'Escape') {
-            closeOverlay();
-        }
-        return;
-    }
-
-    if (world && !world.gameStarted && isStartKey(event.code)) {
-        event.preventDefault();
-        startGameIfNeeded();
-        return;
-    }
-
-    if (!world || world.gameOver || world.gameWon) {
-        return;
-    }
-
-    setPressedKeyState(event.code, true);
 }
 
-// Reagiert auf losgelassene Tasten.
+/** Startet das Spiel per Tastatur. */
+function handleStartKey(code) {
+    if (!isStartKey(code) || isHelpOpen()) {
+        return;
+    }
+
+    startGameIfNeeded();
+}
+
+/** Prüft, ob die Taste das Spiel startet. */
+function isStartKey(code) {
+    return code === 'Enter' || code === 'Space';
+}
+
+/** Prüft, ob Tasten ins Spiel dürfen. */
+function canReadKeyboard() {
+    return !world.gameOver && !world.gameWon && !isHelpOpen();
+}
+
+/** Reagiert auf losgelassene Tasten. */
 function handleWindowKeyUp(event) {
     setPressedKeyState(event.code, false);
 }
 
-// Prüft, ob die Taste das Spiel starten soll.
-function isStartKey(code) {
-    return code === 'Space' || code === 'Enter';
-}
-
-// Setzt den Tastenzustand passend zum Code.
+/** Setzt den Tastenzustand passend zum Code. */
 function setPressedKeyState(code, isPressed) {
-    if (code === 'ArrowUp') {
-        keyboard.UP = isPressed;
-        keyboard.SPACE = isPressed;
-    }
+    const keyMap = {
+        ArrowLeft: 'LEFT',
+        ArrowRight: 'RIGHT',
+        ArrowUp: 'UP',
+        ArrowDown: 'DOWN',
+        Space: 'SPACE',
+        KeyD: 'D'
+    };
 
-    const propertyName = keyBindings[code];
-
-    if (propertyName) {
-        keyboard[propertyName] = isPressed;
+    if (keyMap[code]) {
+        keyboard[keyMap[code]] = isPressed;
     }
 }
 
-// Richtet den Vollbildknopf ein.
+/** Richtet den Vollbildknopf ein. */
 function setupFullscreenButton() {
     if (!document.fullscreenEnabled || !gameStage || !fullscreenButton) {
         return;
@@ -267,36 +190,44 @@ function setupFullscreenButton() {
 
     fullscreenButton.addEventListener('click', toggleFullscreenMode);
     document.addEventListener('fullscreenchange', updateFullscreenIcon);
-    updateFullscreenIcon();
 }
 
-// Schaltet zwischen Vollbild und normal um.
+/** Schaltet zwischen Vollbild und normal um. */
 async function toggleFullscreenMode() {
     try {
         document.fullscreenElement ? await document.exitFullscreen() : await gameStage.requestFullscreen();
     } catch (error) {
-        console.error('Vollbild konnte nicht aktiviert werden.', error);
+        updateFullscreenIcon();
     }
-
-    updateFullscreenIcon();
 }
 
-// Aktualisiert das Vollbildsymbol.
+/** Aktualisiert das Vollbildsymbol. */
 function updateFullscreenIcon() {
     if (fullscreenButton) {
         fullscreenButton.textContent = document.fullscreenElement ? '✕' : '⛶';
     }
 }
 
-// Richtet die mobilen Steuerflächen ein.
+/** Richtet die mobilen Steuerflächen ein. */
 function setupMobileControls() {
+    blockMobileContextMenus();
     bindPressButton('btn-left', 'LEFT');
     bindPressButton('btn-right', 'RIGHT');
     bindPressButton('btn-jump', 'SPACE');
     bindPressButton('btn-throw', 'D');
 }
 
-// Bindet Touch- und Mausereignisse an einen Button.
+/** Verhindert Kontextmenüs auf mobilen Buttons. */
+function blockMobileContextMenus() {
+    mobileButtons.forEach((button) => button.addEventListener('contextmenu', stopButtonContextMenu));
+}
+
+/** Stoppt das Kontextmenü. */
+function stopButtonContextMenu(event) {
+    event.preventDefault();
+}
+
+/** Bindet Druck- und Loslass-Events an einen Button. */
 function bindPressButton(buttonId, keyName) {
     const button = document.getElementById(buttonId);
 
@@ -304,41 +235,40 @@ function bindPressButton(buttonId, keyName) {
         return;
     }
 
-    bindButtonEvent(button, 'touchstart', handlePressStart.bind(null, keyName), { passive: false });
-    bindButtonEvent(button, 'touchend', handlePressEnd.bind(null, keyName), { passive: false });
-    bindButtonEvent(button, 'touchcancel', handlePressEnd.bind(null, keyName), { passive: false });
-    bindButtonEvent(button, 'mousedown', handlePressStart.bind(null, keyName));
-    bindButtonEvent(button, 'mouseup', handlePressEnd.bind(null, keyName));
-    bindButtonEvent(button, 'mouseleave', handlePressEnd.bind(null, keyName));
+    button.dataset.key = keyName;
+    ['touchstart', 'mousedown'].forEach((name) => button.addEventListener(name, handlePressStart));
+    ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach((name) => button.addEventListener(name, handlePressEnd));
 }
 
-// Bindet ein einzelnes Ereignis an einen Button.
-function bindButtonEvent(button, eventName, handler, options) {
-    button.addEventListener(eventName, handler, options);
-}
+/** Reagiert auf das Drücken eines mobilen Buttons. */
+function handlePressStart(event) {
+    const button = event.currentTarget;
 
-// Reagiert auf das Drücken eines mobilen Buttons.
-function handlePressStart(keyName, event) {
-    event.preventDefault();
-
-    if (!world || hasOpenOverlay()) {
-        keyboard[keyName] = false;
+    if (shouldIgnoreMobileInput(event, button)) {
         return;
     }
 
+    event.preventDefault();
     world.handleUserInteraction();
-
-    if (world.gameOver || world.gameWon) {
-        keyboard[keyName] = false;
-        return;
-    }
-
+    keyboard[button.dataset.key] = true;
     startGameIfNeeded();
-    keyboard[keyName] = true;
 }
 
-// Reagiert auf das Loslassen eines mobilen Buttons.
-function handlePressEnd(keyName, event) {
-    event.preventDefault();
-    keyboard[keyName] = false;
+/** Prüft, ob ein mobiler Input ignoriert werden soll. */
+function shouldIgnoreMobileInput(event, button) {
+    return !button || !button.dataset.key || world.gameOver || world.gameWon || isHelpOpen() || isSecondaryMouseButton(event);
+}
+
+/** Prüft, ob die zweite Maustaste benutzt wurde. */
+function isSecondaryMouseButton(event) {
+    return event.type === 'mousedown' && event.button !== 0;
+}
+
+/** Reagiert auf das Loslassen eines mobilen Buttons. */
+function handlePressEnd(event) {
+    const button = event.currentTarget;
+
+    if (button?.dataset.key) {
+        keyboard[button.dataset.key] = false;
+    }
 }

@@ -1,0 +1,109 @@
+@media (hover: none) and (pointer: coarse), (max-width: 900px) {
+    .mobile-controls {
+        display: flex;
+    }
+}
+
+@media (orientation: portrait) and (hover: none), (orientation: portrait) and (pointer: coarse) {
+    .rotate-device-hint {
+        display: flex;
+    }
+}
+
+@media (max-width: 900px) {
+    .game-page {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    h1 {
+        font-size: clamp(32px, 11vw, 62px);
+    }
+
+    .overlay-panel,
+    .imprint-panel {
+        padding: 22px 18px;
+    }
+
+    .help-grid,
+    .imprint-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .game-page {
+        justify-content: flex-start;
+    }
+
+    .game-stage {
+        width: 100%;
+        border-radius: 18px;
+    }
+
+    .fullscreen-btn,
+    .start-screen-help {
+        top: 10px;
+    }
+
+    .fullscreen-btn {
+        right: 10px;
+    }
+
+    .start-screen-help {
+        left: 10px;
+    }
+
+    .start-screen-imprint {
+        left: 10px;
+        bottom: 10px;
+    }
+
+    .page-imprint-link {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 560px) {
+    .mobile-controls {
+        padding: 10px;
+    }
+
+    .mobile-controls-bottom,
+    .mobile-controls-move,
+    .mobile-controls-throw {
+        gap: 8px;
+    }
+
+    .mobile-btn {
+        width: 54px;
+        height: 54px;
+        font-size: 24px;
+    }
+
+    .mobile-btn-throw {
+        width: 78px;
+        font-size: 15px;
+    }
+
+    .overlay-close {
+        top: 12px;
+        right: 12px;
+    }
+
+    .overlay-panel,
+    .imprint-panel {
+        border-radius: 18px;
+    }
+}
+
+@media (max-height: 700px) {
+    .game-page {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    h1 {
+        font-size: clamp(30px, 8vh, 58px);
+    }
+}

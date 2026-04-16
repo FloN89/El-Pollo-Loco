@@ -7,6 +7,9 @@ class Character extends MovableObject {
     hurtDuration = 220;
     world = null;
     deathAnimationIndex = 0;
+    lastActionAt = Date.now();
+    sleepDelay = 15000;
+    isSleeping = false;
 
     imagePathsWalking = [
         'img/2_character_pepe/2_walk/W-21.png',
@@ -56,7 +59,20 @@ class Character extends MovableObject {
         'img/2_character_pepe/1_idle/idle/I-8.png'
     ];
 
-    // Erstellt den spielbaren Charakter.
+    imagePathsSleep = [
+        'img/2_character_pepe/1_idle/long_idle/I-11.png',
+        'img/2_character_pepe/1_idle/long_idle/I-12.png',
+        'img/2_character_pepe/1_idle/long_idle/I-13.png',
+        'img/2_character_pepe/1_idle/long_idle/I-14.png',
+        'img/2_character_pepe/1_idle/long_idle/I-15.png',
+        'img/2_character_pepe/1_idle/long_idle/I-16.png',
+        'img/2_character_pepe/1_idle/long_idle/I-17.png',
+        'img/2_character_pepe/1_idle/long_idle/I-18.png',
+        'img/2_character_pepe/1_idle/long_idle/I-19.png',
+        'img/2_character_pepe/1_idle/long_idle/I-20.png'
+    ];
+
+    /** Erstellt den spielbaren Charakter. */
     constructor() {
         super();
         this.loadImage(this.imagePathsIdle[0]);
@@ -65,16 +81,17 @@ class Character extends MovableObject {
         this.loadImages(this.imagePathsHurt);
         this.loadImages(this.imagePathsDead);
         this.loadImages(this.imagePathsIdle);
+        this.loadImages(this.imagePathsSleep);
         this.applyGravity();
     }
 
-    // Startet Bewegungs- und Bildwechselintervalle.
+    /** Startet Bewegungs- und Bildwechselintervalle. */
     animate() {
         setInterval(this.updateMovement.bind(this), 1000 / 60);
         setInterval(this.updateAnimation.bind(this), 80);
     }
 
-    // Aktualisiert die Charakterbewegung.
+    /** Aktualisiert die Charakterbewegung. */
     updateMovement() {
         if (this.isMovementPaused()) {
             this.stopRunningSound();
@@ -83,22 +100,23 @@ class Character extends MovableObject {
 
         const isMovingHorizontally = this.handleHorizontalMovement();
         this.handleJumpInput();
+        this.updateSleepState(isMovingHorizontally);
         this.updateWorldAfterMovement(isMovingHorizontally);
     }
 
-    // Prüft, ob der Charakter pausieren muss.
+    /** Prüft, ob der Charakter pausieren muss. */
     isMovementPaused() {
         return !this.world || !this.world.gameStarted || this.isDead() || this.world.gameOver || this.world.gameWon;
     }
 
-    // Stoppt das Laufgeräusch sicher.
+    /** Stoppt das Laufgeräusch sicher. */
     stopRunningSound() {
         if (this.world) {
             this.world.updateRunningSound(false);
         }
     }
 
-    // Verarbeitet links und rechts.
+    /** Verarbeitet links und rechts. */
     handleHorizontalMovement() {
         let isMovingHorizontally = false;
         isMovingHorizontally = this.moveRightIfRequested() || isMovingHorizontally;
@@ -106,7 +124,7 @@ class Character extends MovableObject {
         return isMovingHorizontally;
     }
 
-    // Bewegt den Charakter nach rechts.
+    /** Bewegt den Charakter nach rechts. */
     moveRightIfRequested() {
         if (!this.world.keyboard.RIGHT || this.x >= this.world.level.levelEndX) {
             return false;
@@ -114,10 +132,11 @@ class Character extends MovableObject {
 
         this.moveRight();
         this.otherDirection = false;
+        this.rememberAction();
         return true;
     }
 
-    // Bewegt den Charakter nach links.
+    /** Bewegt den Charakter nach links. */
     moveLeftIfRequested() {
         if (!this.world.keyboard.LEFT || this.x <= 0) {
             return false;
@@ -125,33 +144,71 @@ class Character extends MovableObject {
 
         this.moveLeft();
         this.otherDirection = true;
+        this.rememberAction();
         return true;
     }
 
-    // Verarbeitet den Sprungknopf.
+    /** Verarbeitet den Sprungknopf. */
     handleJumpInput() {
         if (this.world.keyboard.SPACE && !this.isAboveGround() && this.speedY === 0) {
             this.jump();
         }
     }
 
-    // Aktualisiert Kamera und Laufgeräusch.
+    /** Aktualisiert den Schlafzustand. */
+    updateSleepState(isMovingHorizontally) {
+        if (this.shouldStayAwake(isMovingHorizontally)) {
+            this.rememberAction();
+            return;
+        }
+
+        this.setSleepState(Date.now() - this.lastActionAt > this.sleepDelay);
+    }
+
+    /** Prüft, ob der Charakter wach bleiben soll. */
+    shouldStayAwake(isMovingHorizontally) {
+        return isMovingHorizontally || this.isAboveGround() || this.isHurt() || this.isActionKeyPressed();
+    }
+
+    /** Prüft, ob eine Aktionstaste gedrückt wird. */
+    isActionKeyPressed() {
+        return this.world.keyboard.LEFT || this.world.keyboard.RIGHT || this.world.keyboard.SPACE;
+    }
+
+    /** Merkt sich die letzte Aktion. */
+    rememberAction() {
+        this.lastActionAt = Date.now();
+        this.setSleepState(false);
+    }
+
+    /** Setzt den Schlafstatus und Sound neu. */
+    setSleepState(value) {
+        if (this.isSleeping === value) {
+            return;
+        }
+
+        this.isSleeping = value;
+        this.world?.synchronizeAudioState();
+    }
+
+    /** Aktualisiert Kamera und Laufgeräusch. */
     updateWorldAfterMovement(isMovingHorizontally) {
         const isRunning = isMovingHorizontally && !this.isAboveGround();
         this.world.updateRunningSound(isRunning);
         this.world.cameraX = this.world.getCameraOffsetFor(this.x);
     }
 
-    // Aktualisiert die Bildauswahl.
+    /** Aktualisiert die Bildauswahl. */
     updateAnimation() {
         if (!this.world) {
             return;
         }
 
+        this.world.synchronizeAudioState();
         this.isDead() ? this.playDeadAnimation() : this.playAliveAnimation();
     }
 
-    // Spielt die passende Bildreihe im normalen Zustand.
+    /** Spielt die passende Bildreihe im normalen Zustand. */
     playAliveAnimation() {
         if (this.world.gameOver || this.world.gameWon) {
             this.playAnimation(this.getEndStateImagePaths());
@@ -161,47 +218,60 @@ class Character extends MovableObject {
         this.playAnimation(this.getImagePathsForCurrentState());
     }
 
-    // Liefert die Bildreihe für das Spielende.
+    /** Liefert die Bildreihe für das Spielende. */
     getEndStateImagePaths() {
         return this.isAboveGround() ? this.imagePathsJumping : this.imagePathsIdle;
     }
 
-    // Liefert die Bildreihe für den aktuellen Zustand.
+    /** Liefert die Bildreihe für den aktuellen Zustand. */
     getImagePathsForCurrentState() {
         if (this.isHurt()) {
             return this.imagePathsHurt;
         }
 
-        if (this.isAboveGround()) {
-            return this.imagePathsJumping;
-        }
+        return this.isAboveGround() ? this.imagePathsJumping : this.getGroundImagePaths();
+    }
 
+    /** Liefert die Bildreihe am Boden. */
+    getGroundImagePaths() {
+        return this.isSleeping ? this.imagePathsSleep : this.getStandingImagePaths();
+    }
+
+    /** Liefert Idle oder Laufbilder. */
+    getStandingImagePaths() {
         return this.isWalking() ? this.imagePathsWalking : this.imagePathsIdle;
     }
 
-    // Prüft, ob gerade gelaufen wird.
+    /** Prüft, ob gerade gelaufen wird. */
     isWalking() {
         return this.world.keyboard.RIGHT || this.world.keyboard.LEFT;
     }
 
-    // Startet einen Sprung mit Sound.
+    /** Startet einen Sprung mit Sound. */
     jump(power = 22) {
-    if (this.speedY !== 0) {
-        return;
+        if (this.speedY !== 0) {
+            return;
+        }
+
+        this.rememberAction();
+        super.jump(power);
+        this.world.playJumpSound();
     }
 
-    super.jump(power);
-    this.world.playJumpSound();
-}
+    /** Reagiert auf Schaden und bleibt wach. */
+    hit(damage = 20) {
+        super.hit(damage);
+        this.rememberAction();
+    }
 
-    // Spielt die Todesbilder nacheinander ab.
+    /** Spielt die Todesbilder nacheinander ab. */
     playDeadAnimation() {
         const path = this.getDeadAnimationPath();
         this.image = this.imageCache[path];
         this.deathAnimationIndex = Math.min(this.deathAnimationIndex + 1, this.imagePathsDead.length);
     }
 
-    // Liefert das richtige Todesbild.
+    /** Liefert das richtige Todesbild. */
     getDeadAnimationPath() {
         const lastIndex = this.imagePathsDead.length - 1;
         const imageIndex = Math.min(this.deathAnimationIndex, lastIndex);
