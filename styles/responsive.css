@@ -107,3 +107,20 @@
         font-size: clamp(30px, 8vh, 58px);
     }
 }
+
+@media (max-width: 900px), (max-height: 700px) {
+    .page-imprint-link {
+        display: none;
+    }
+
+    .start-screen-imprint {
+        display: inline-flex;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+    }
+
+    .start-screen-imprint:hover {
+        transform: translateX(-50%) translateY(-1px);
+    }
+}

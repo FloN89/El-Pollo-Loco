@@ -118,11 +118,11 @@ class WorldAudio extends WorldBase {
     }
 
     /** Stoppt Effekt-Sounds beim Stummschalten. */
-    stopAllEffectSoundsIfMuted() {
-        if (!this.soundEnabled) {
-            this.stopAllEffectSounds();
-        }
+        stopAllEffectSoundsIfMuted() {
+            if (!this.soundEnabled) {
+               this.stopAllEffectSounds();
     }
+}
 
     /** Startet oder stoppt das Laufgeräusch. */
     updateRunningSound(isRunning) {
@@ -162,21 +162,21 @@ class WorldAudio extends WorldBase {
 
     /** Merkt sich einen laufenden Effekt-Sound. */
     registerEffectAudio(audio) {
+        this.activeEffectSounds ??= [];
         this.activeEffectSounds.push(audio);
         audio.addEventListener('ended', () => this.removeFinishedEffect(audio));
     }
 
     /** Entfernt einen beendeten Effekt-Sound. */
     removeFinishedEffect(audio) {
-        this.activeEffectSounds = this.activeEffectSounds.filter((sound) => sound !== audio);
+        this.activeEffectSounds = (this.activeEffectSounds ?? []).filter((sound) => sound !== audio);
     }
 
     /** Stoppt alle Effekt-Sounds. */
     stopAllEffectSounds() {
-        this.activeEffectSounds.forEach((audio) => this.stopAudio(audio));
+        (this.activeEffectSounds ?? []).forEach((audio) => this.stopAudio(audio));
         this.activeEffectSounds = [];
     }
-
     /** Schaltet Ton an oder aus und speichert ihn. */
     toggleSound() {
         this.soundEnabled = !this.soundEnabled;

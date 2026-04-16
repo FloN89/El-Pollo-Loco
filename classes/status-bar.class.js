@@ -59,7 +59,7 @@ class StatusBar extends DrawableObject {
     /** Setzt den Prozentwert und das Bild. */
     setPercentage(percentage) {
         this.percentage = Math.max(0, Math.min(100, percentage));
-        this.img = this.imageCache[this.getImagePathForPercentage()];
+        this.image = this.imageCache[this.getImagePathForPercentage()];
     }
 
     /** Liefert das Bild passend zum Prozentwert. */

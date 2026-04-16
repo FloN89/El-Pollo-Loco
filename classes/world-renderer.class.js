@@ -23,7 +23,7 @@ class WorldRenderer extends WorldGameplay {
         const width = 260;
         const height = 64;
         const x = (this.canvas.width - width) / 2;
-        const y = (this.canvas.height - height) / 2;
+        const y = (this.canvas.height - height) / 2 + 40;
         this.drawActionButton(this.getSoundButtonLabel(), 24, 24, 160, 48, 'sound', this.getSoundButtonOptions());
         this.drawActionButton('START GAME', x, y, width, height, 'start');
     }

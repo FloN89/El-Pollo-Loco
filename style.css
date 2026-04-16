@@ -127,14 +127,17 @@ canvas {
 
 .start-screen-help {
     top: 16px;
-    left: 16px;
+    right: 70px;
+    left: auto;
     width: 46px;
     padding: 0;
 }
 
 .start-screen-imprint {
     bottom: 16px;
-    left: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
 }
 
 .help-button-icon {
@@ -148,6 +151,10 @@ canvas {
     min-height: 46px;
     padding: 0 18px;
     font-weight: 700;
+}
+
+.page-imprint-link {
+    display: inline-flex;
 }
 
 .game-stage .stage-overlay-btn,
@@ -196,7 +203,11 @@ canvas {
 
 .mobile-controls-move {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+}
+
+.mobile-controls-bottom {
+    justify-content: center;
 }
 
 .mobile-btn {
@@ -319,4 +330,21 @@ canvas {
     align-items: center;
     justify-content: center;
     padding: 24px;
+}
+
+@media (max-width: 900px), (max-height: 700px) {
+    .page-imprint-link {
+        display: none;
+    }
+
+    .start-screen-imprint {
+        display: inline-flex;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+    }
+
+    .start-screen-imprint:hover {
+        transform: translateX(-50%) translateY(-1px);
+    }
 }
