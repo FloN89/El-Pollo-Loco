@@ -1,90 +1,91 @@
-function createDistributedXPositions(amount, startX, endX) {
-    let positions = [];
-    let distance = (endX - startX) / amount;
+// Verteilt X-Positionen gleichmäßig mit Zufall.
+function createDistributedPositions(amount, startX, endX) {
+    const positions = [];
+    const distance = (endX - startX) / amount;
 
-    for (let i = 0; i < amount; i++) {
-        let baseX = startX + i * distance;
-        let randomOffset = Math.random() * Math.max(80, distance - 120);
+    for (let index = 0; index < amount; index++) {
+        const baseX = startX + index * distance;
+        const randomOffset = Math.random() * Math.max(80, distance - 120);
         positions.push(Math.round(baseX + randomOffset));
     }
 
     return positions;
 }
 
+// Erstellt zufällige Flaschen.
 function createRandomBottles(amount, startX = 250, endX = 2950) {
-    return createDistributedXPositions(amount, startX, endX).map((x) => new Bottle(x, 360));
+    return createDistributedPositions(amount, startX, endX).map(createBottleAtPosition);
 }
 
+// Baut eine Flasche an einer Position.
+function createBottleAtPosition(x) {
+    return new Bottle(x, 360);
+}
+
+// Erstellt zufällige Münzen.
 function createRandomCoins(amount, startX = 350, endX = 3000) {
     const coinHeights = [140, 180, 220, 260, 300];
-
-    return createDistributedXPositions(amount, startX, endX).map((x, index) => {
-        let y = coinHeights[index % coinHeights.length];
-        return new Coin(x, y);
-    });
+    const positions = createDistributedPositions(amount, startX, endX);
+    return positions.map((x, index) => new Coin(x, coinHeights[index % coinHeights.length]));
 }
 
+// Erstellt zufällige Gegner.
 function createRandomChickens(amount, startX = 500, endX = 2850) {
-    return createDistributedXPositions(amount, startX, endX).map((x) => new Chicken(x));
+    return createDistributedPositions(amount, startX, endX).map(createChickenAtPosition);
 }
 
+// Baut ein Huhn an einer Position.
+function createChickenAtPosition(x) {
+    return new Chicken(x);
+}
+
+// Erstellt zufällige Wolken.
 function createRandomClouds(amount, startX = -300, endX = 3200) {
-    return createDistributedXPositions(amount, startX, endX).map((x, index) => {
-        let y = 20 + (index % 3) * 20;
-        let speed = 0.04 + (index % 4) * 0.015;
-        return new Cloud(x, y, speed, 3600);
-    });
+    const positions = createDistributedPositions(amount, startX, endX);
+    return positions.map(createCloudAtPosition);
 }
 
+// Baut eine Wolke aus Position und Index.
+function createCloudAtPosition(x, index) {
+    const y = 20 + index % 3 * 20;
+    const speed = 0.04 + index % 4 * 0.015;
+    return new Cloud(x, y, speed, 3600);
+}
+
+// Erstellt alle Hintergrundelemente.
+function createBackgroundObjects() {
+    const layerGroups = [
+        ['img/5_background/layers/air.png', 'img/5_background/layers/3_third_layer/2.png', 'img/5_background/layers/2_second_layer/2.png', 'img/5_background/layers/1_first_layer/2.png'],
+        ['img/5_background/layers/air.png', 'img/5_background/layers/3_third_layer/1.png', 'img/5_background/layers/2_second_layer/1.png', 'img/5_background/layers/1_first_layer/1.png']
+    ];
+
+    return Array.from({ length: 6 }, (_, index) => createBackgroundSegment(index, layerGroups)).flat();
+}
+
+// Erstellt einen Hintergrundabschnitt.
+function createBackgroundSegment(index, layerGroups) {
+    const group = layerGroups[index % layerGroups.length];
+    const x = index * 720 - 719;
+    return group.map((imagePath) => new BackgroundObject(imagePath, x, 0));
+}
+
+// Baut das erste Level.
 function createLevel1() {
     const level = new Level(
-        [
-            ...createRandomChickens(12),
-        ],
-
+        createRandomChickens(12),
         createRandomClouds(8),
-
-        [
-            new BackgroundObject('img/5_background/layers/air.png', -719),
-            new BackgroundObject('img/5_background/layers/3_third_layer/2.png', -719),
-            new BackgroundObject('img/5_background/layers/2_second_layer/2.png', -719),
-            new BackgroundObject('img/5_background/layers/1_first_layer/2.png', -719),
-
-            new BackgroundObject('img/5_background/layers/air.png', 0),
-            new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 0),
-            new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 0),
-            new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 0),
-
-            new BackgroundObject('img/5_background/layers/air.png', 720),
-            new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720),
-            new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720),
-            new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720),
-
-            new BackgroundObject('img/5_background/layers/air.png', 720 * 2),
-            new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720 * 2),
-            new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720 * 2),
-            new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 720 * 2),
-
-            new BackgroundObject('img/5_background/layers/air.png', 720 * 3),
-            new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 720 * 3),
-            new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 720 * 3),
-            new BackgroundObject('img/5_background/layers/1_first_layer/2.png', 720 * 3),
-
-            new BackgroundObject('img/5_background/layers/air.png', 720 * 4),
-            new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 720 * 4),
-            new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 720 * 4),
-            new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 720 * 4),
-        ],
-
+        createBackgroundObjects(),
         createRandomBottles(14),
         createRandomCoins(16),
         3400
     );
 
     level.endbossSpawnX = 2550;
-    level.endbossFactory = () => new Endboss(3200, 2880, 3280);
-
+    level.endbossFactory = createEndbossForLevel1;
     return level;
 }
 
-const level1 = createLevel1();
+// Erstellt den Endboss für Level eins.
+function createEndbossForLevel1() {
+    return new Endboss(3200, 2880, 3280);
+}

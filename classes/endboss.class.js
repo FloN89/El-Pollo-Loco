@@ -1,20 +1,25 @@
 class Endboss extends MovableObject {
-    height = 400;
+    width = 300;
+    height = 420;
     y = 55;
-    width = 250;
-    speed = 1.2;
+    speed = 3.5;
     energy = 100;
+    attackDamage = 10;
     isBossDead = false;
-    activated = false;
-    currentState = 'alert';
-    attackRange = 160;
-    detectionRange = 650;
-    attackDamage = 15;
-    attackCooldown = 1200;
-    lastAttack = 0;
-    deathAnimationIndex = 0;
+    lastAttackAt = 0;
+    attackCooldown = 1000;
+    leftBorder = 2880;
+    rightBorder = 3280;
+    direction = -1;
 
-    IMAGES_ALERT = [
+    imagePathsWalking = [
+        'img/4_enemie_boss_chicken/1_walk/G1.png',
+        'img/4_enemie_boss_chicken/1_walk/G2.png',
+        'img/4_enemie_boss_chicken/1_walk/G3.png',
+        'img/4_enemie_boss_chicken/1_walk/G4.png'
+    ];
+
+    imagePathsAlert = [
         'img/4_enemie_boss_chicken/2_alert/G5.png',
         'img/4_enemie_boss_chicken/2_alert/G6.png',
         'img/4_enemie_boss_chicken/2_alert/G7.png',
@@ -25,14 +30,7 @@ class Endboss extends MovableObject {
         'img/4_enemie_boss_chicken/2_alert/G12.png'
     ];
 
-    IMAGES_WALKING = [
-        'img/4_enemie_boss_chicken/1_walk/G1.png',
-        'img/4_enemie_boss_chicken/1_walk/G2.png',
-        'img/4_enemie_boss_chicken/1_walk/G3.png',
-        'img/4_enemie_boss_chicken/1_walk/G4.png'
-    ];
-
-    IMAGES_ATTACK = [
+    imagePathsAttack = [
         'img/4_enemie_boss_chicken/3_attack/G13.png',
         'img/4_enemie_boss_chicken/3_attack/G14.png',
         'img/4_enemie_boss_chicken/3_attack/G15.png',
@@ -43,132 +41,110 @@ class Endboss extends MovableObject {
         'img/4_enemie_boss_chicken/3_attack/G20.png'
     ];
 
-    IMAGES_HURT = [
+    imagePathsHurt = [
         'img/4_enemie_boss_chicken/4_hurt/G21.png',
         'img/4_enemie_boss_chicken/4_hurt/G22.png',
         'img/4_enemie_boss_chicken/4_hurt/G23.png'
     ];
 
-    IMAGES_DEAD = [
+    imagePathsDead = [
         'img/4_enemie_boss_chicken/5_dead/G24.png',
         'img/4_enemie_boss_chicken/5_dead/G25.png',
         'img/4_enemie_boss_chicken/5_dead/G26.png'
     ];
 
-    constructor(x = 3200, leftBoundary = x - 320, rightBoundary = x + 80) {
+    // Erstellt den Endboss.
+    constructor(x = 3200, leftBorder = 2880, rightBorder = 3280) {
         super();
-        this.loadImage(this.IMAGES_ALERT[0]);
-        this.loadImages(this.IMAGES_ALERT);
-        this.loadImages(this.IMAGES_WALKING);
-        this.loadImages(this.IMAGES_ATTACK);
-        this.loadImages(this.IMAGES_HURT);
-        this.loadImages(this.IMAGES_DEAD);
+        this.loadImage(this.imagePathsAlert[0]);
+        this.loadImages(this.imagePathsWalking);
+        this.loadImages(this.imagePathsAlert);
+        this.loadImages(this.imagePathsAttack);
+        this.loadImages(this.imagePathsHurt);
+        this.loadImages(this.imagePathsDead);
         this.x = x;
-        this.leftBoundary = leftBoundary;
-        this.rightBoundary = rightBoundary;
+        this.leftBorder = leftBorder;
+        this.rightBorder = rightBorder;
         this.animate();
     }
 
+    // Startet die Bildanimation.
     animate() {
-        setInterval(() => {
-            if (this.isBossDead) {
-                this.playDeadAnimation();
-                return;
-            }
-
-            if (this.isHurt()) {
-                this.playAnimation(this.IMAGES_HURT);
-                return;
-            }
-
-            if (this.currentState === 'attack') {
-                this.playAnimation(this.IMAGES_ATTACK);
-            } else if (this.currentState === 'walk') {
-                this.playAnimation(this.IMAGES_WALKING);
-            } else {
-                this.playAnimation(this.IMAGES_ALERT);
-            }
-        }, 120);
+        setInterval(this.updateAnimation.bind(this), 160);
     }
 
+    // Aktualisiert den aktuellen Zustand.
     updateBehavior(character) {
         if (this.isBossDead) {
             return false;
         }
 
-        const distance = character.x - this.x;
-        const absoluteDistance = Math.abs(distance);
+        this.moveInsideArena();
+        this.faceCharacter(character);
+        return this.tryAttack(character);
+    }
 
-        if (character.x > this.x - this.detectionRange) {
-            this.activated = true;
+    // Bewegt den Boss in seiner Arena.
+    moveInsideArena() {
+        this.x += this.speed * this.direction;
+
+        if (this.x <= this.leftBorder || this.x >= this.rightBorder) {
+            this.direction *= -1;
         }
+    }
 
-        if (!this.activated) {
-            this.currentState = 'alert';
+    // Dreht den Boss zum Charakter.
+    faceCharacter(character) {
+        this.otherDirection = character.x > this.x;
+    }
+
+    // Prüft, ob der Boss angreifen kann.
+    tryAttack(character) {
+        if (!this.isCharacterInAttackRange(character) || !this.isAttackReady()) {
             return false;
         }
 
-        this.otherDirection = distance > 0;
-
-        if (absoluteDistance > this.attackRange) {
-            this.currentState = 'walk';
-            this.moveInArena(distance);
-            return false;
-        }
-
-        this.currentState = 'attack';
-
-        if (this.canAttack()) {
-            this.lastAttack = Date.now();
-            return true;
-        }
-
-        return false;
+        this.lastAttackAt = Date.now();
+        return true;
     }
 
-    moveInArena(distance) {
-        if (distance < 0) {
-            if (this.x > this.leftBoundary) {
-                this.moveLeft();
-                this.x = Math.max(this.x, this.leftBoundary);
-            } else {
-                this.currentState = 'alert';
-            }
-        } else {
-            if (this.x < this.rightBoundary) {
-                this.moveRight();
-                this.x = Math.min(this.x, this.rightBoundary);
-            } else {
-                this.currentState = 'alert';
-            }
+    // Prüft die Angriffsreichweite.
+    isCharacterInAttackRange(character) {
+        return Math.abs(this.x - character.x) < 140;
+    }
+
+    // Prüft den Cooldown.
+    isAttackReady() {
+        return Date.now() - this.lastAttackAt > this.attackCooldown;
+    }
+
+    // Aktualisiert das Bossbild.
+    updateAnimation() {
+        if (this.isBossDead) {
+            this.playAnimation(this.imagePathsDead);
+            return;
         }
+
+        if (this.isHurt()) {
+            this.playAnimation(this.imagePathsHurt);
+            return;
+        }
+
+        if (Date.now() - this.lastAttackAt < 450) {
+            this.playAnimation(this.imagePathsAttack);
+            return;
+        }
+
+        this.playAnimation(this.imagePathsWalking);
     }
 
-    canAttack() {
-        return Date.now() - this.lastAttack > this.attackCooldown;
-    }
-
-    takeDamage(amount = 20) {
+    // Verarbeitet Schaden.
+    takeDamage(damage) {
         if (this.isBossDead) {
             return;
         }
 
-        this.hit(amount);
-
-        if (this.energy === 0) {
-            this.isBossDead = true;
-            this.currentState = 'dead';
-        }
-    }
-
-    playDeadAnimation() {
-        if (this.deathAnimationIndex < this.IMAGES_DEAD.length) {
-            let path = this.IMAGES_DEAD[this.deathAnimationIndex];
-            this.img = this.imageCache[path];
-            this.deathAnimationIndex++;
-        } else {
-            let lastImage = this.IMAGES_DEAD[this.IMAGES_DEAD.length - 1];
-            this.img = this.imageCache[lastImage];
-        }
+        this.hit(damage);
+        this.isBossDead = this.energy === 0;
     }
 }

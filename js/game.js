@@ -1,86 +1,163 @@
 let canvas;
 let world;
 let keyboard = new Keyboard();
+let fullscreenButton;
+let gameStage;
+let startScreenStateInterval;
 
-function initGame() {
+const keyBindings = { ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowDown: 'DOWN', Space: 'SPACE', KeyD: 'D' };
+
+// Initialisiert das Spiel nach dem Laden der Seite.
+function initializeGame() {
     canvas = document.getElementById('canvas');
+    gameStage = document.getElementById('game-stage');
+    fullscreenButton = document.getElementById('fullscreen-btn');
     world = new World(canvas, keyboard);
-
     bindCanvasEvents();
+    bindKeyboardEvents();
     setupFullscreenButton();
     setupMobileControls();
-
-    console.log('My Character is', world.character);
+    setupAudioUnlock();
+    synchronizeStartScreenImprint();
 }
 
+// Startet das Spiel bei Bedarf.
 function startGameIfNeeded() {
     if (!world) {
         return;
     }
 
     world.handleUserInteraction();
-
     if (!world.gameStarted) {
         world.startGame();
     }
 }
 
-function bindCanvasEvents() {
-    canvas.addEventListener('click', (event) => {
-        if (!world) {
-            return;
-        }
-
-        world.handleUserInteraction();
-
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
-
-        world.handleCanvasClick(x, y);
-    });
+// Richtet Entsperrer für Audio ein.
+function setupAudioUnlock() {
+    window.addEventListener('pointerdown', handleAnyUserInteraction, { passive: true });
+    window.addEventListener('touchstart', handleAnyUserInteraction, { passive: true });
+    window.addEventListener('keydown', handleAnyUserInteraction);
+    window.addEventListener('focus', handleAnyUserInteraction);
 }
 
-function setupFullscreenButton() {
-    const stage = document.getElementById('game-stage');
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
+// Reagiert auf jede Nutzerinteraktion.
+function handleAnyUserInteraction() {
+    if (world) {
+        world.handleUserInteraction();
+    }
+}
 
-    if (!stage || !fullscreenBtn) {
+// Hält den Impressum-Link auf dem Startbildschirm synchron.
+function synchronizeStartScreenImprint() {
+    if (!gameStage) {
         return;
     }
 
-    const updateFullscreenIcon = () => {
-        const isFullscreen = document.fullscreenElement === stage || document.webkitFullscreenElement === stage;
-        fullscreenBtn.textContent = isFullscreen ? '✕' : '⛶';
-    };
+    startScreenStateInterval = setInterval(updateStartScreenImprintState, 120);
+}
 
-    fullscreenBtn.addEventListener('click', async () => {
-        try {
-            if (document.fullscreenElement === stage || document.webkitFullscreenElement === stage) {
-                if (document.exitFullscreen) {
-                    await document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-            } else if (stage.requestFullscreen) {
-                await stage.requestFullscreen();
-            } else if (stage.webkitRequestFullscreen) {
-                stage.webkitRequestFullscreen();
-            }
-        } catch (error) {
-            console.error('Fullscreen konnte nicht gestartet werden:', error);
-        }
+// Aktualisiert die Startscreen-Klasse.
+function updateStartScreenImprintState() {
+    gameStage.classList.toggle('show-start-screen-imprint', !!world && !world.gameStarted);
+}
 
-        updateFullscreenIcon();
-    });
+// Bindet den Klick auf das Canvas.
+function bindCanvasEvents() {
+    canvas.addEventListener('click', handleCanvasClick);
+}
 
+// Reagiert auf Canvas-Klicks.
+function handleCanvasClick(event) {
+    if (!world) {
+        return;
+    }
+
+    const position = getCanvasPosition(event);
+    world.handleCanvasClick(position.x, position.y);
+}
+
+// Rechnet Browser-Koordinaten auf Canvas um.
+function getCanvasPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return { x: (event.clientX - rect.left) * scaleX, y: (event.clientY - rect.top) * scaleY };
+}
+
+// Richtet die Tastatursteuerung ein.
+function bindKeyboardEvents() {
+    window.addEventListener('keydown', handleWindowKeyDown);
+    window.addEventListener('keyup', handleWindowKeyUp);
+}
+
+// Reagiert auf gedrückte Tasten.
+function handleWindowKeyDown(event) {
+    handleAnyUserInteraction();
+    if (isStartKey(event.code)) {
+        startGameIfNeeded();
+    }
+    if (event.code === 'Space') {
+        event.preventDefault();
+    }
+    if (!world || world.gameOver || world.gameWon) {
+        return;
+    }
+    setPressedKeyState(event.code, true);
+}
+
+// Reagiert auf losgelassene Tasten.
+function handleWindowKeyUp(event) {
+    setPressedKeyState(event.code, false);
+}
+
+// Prüft, ob die Taste das Spiel starten soll.
+function isStartKey(code) {
+    return code === 'Space' || code === 'Enter';
+}
+
+// Setzt den Tastenzustand passend zum Code.
+function setPressedKeyState(code, isPressed) {
+    if (code === 'ArrowUp') {
+        keyboard.UP = isPressed;
+        keyboard.SPACE = isPressed;
+    }
+
+    const propertyName = keyBindings[code];
+    if (propertyName) {
+        keyboard[propertyName] = isPressed;
+    }
+}
+
+// Richtet den Vollbildknopf ein.
+function setupFullscreenButton() {
+    if (!document.fullscreenEnabled || !gameStage || !fullscreenButton) {
+        return;
+    }
+
+    fullscreenButton.addEventListener('click', toggleFullscreenMode);
     document.addEventListener('fullscreenchange', updateFullscreenIcon);
-    document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
     updateFullscreenIcon();
 }
 
+// Schaltet zwischen Vollbild und normal um.
+async function toggleFullscreenMode() {
+    try {
+        document.fullscreenElement ? await document.exitFullscreen() : await gameStage.requestFullscreen();
+    } catch (error) {
+        console.error('Vollbild konnte nicht aktiviert werden.', error);
+    }
+    updateFullscreenIcon();
+}
+
+// Aktualisiert das Vollbildsymbol.
+function updateFullscreenIcon() {
+    if (fullscreenButton) {
+        fullscreenButton.textContent = document.fullscreenElement ? '✕' : '⛶';
+    }
+}
+
+// Richtet die mobilen Steuerflächen ein.
 function setupMobileControls() {
     bindPressButton('btn-left', 'LEFT');
     bindPressButton('btn-right', 'RIGHT');
@@ -88,90 +165,42 @@ function setupMobileControls() {
     bindPressButton('btn-throw', 'D');
 }
 
+// Bindet Touch- und Mausereignisse an einen Button.
 function bindPressButton(buttonId, keyName) {
     const button = document.getElementById(buttonId);
-
     if (!button) {
         return;
     }
-
-    const press = (event) => {
-        event.preventDefault();
-
-        if (!world) {
-            return;
-        }
-
-        world.handleUserInteraction();
-
-        if (world.gameOver || world.gameWon) {
-            keyboard[keyName] = false;
-            return;
-        }
-
-        startGameIfNeeded();
-        keyboard[keyName] = true;
-    };
-
-    const release = (event) => {
-        event.preventDefault();
-        keyboard[keyName] = false;
-    };
-
-    button.addEventListener('touchstart', press, { passive: false });
-    button.addEventListener('touchend', release, { passive: false });
-    button.addEventListener('touchcancel', release, { passive: false });
-    button.addEventListener('mousedown', press);
-    button.addEventListener('mouseup', release);
-    button.addEventListener('mouseleave', release);
+    bindButtonEvent(button, 'touchstart', handlePressStart.bind(null, keyName), { passive: false });
+    bindButtonEvent(button, 'touchend', handlePressEnd.bind(null, keyName), { passive: false });
+    bindButtonEvent(button, 'touchcancel', handlePressEnd.bind(null, keyName), { passive: false });
+    bindButtonEvent(button, 'mousedown', handlePressStart.bind(null, keyName));
+    bindButtonEvent(button, 'mouseup', handlePressEnd.bind(null, keyName));
+    bindButtonEvent(button, 'mouseleave', handlePressEnd.bind(null, keyName));
 }
 
-window.addEventListener('keydown', (event) => {
-    if (world) {
-        world.handleUserInteraction();
-    }
+// Bindet ein einzelnes Ereignis an einen Button.
+function bindButtonEvent(button, eventName, handler, options) {
+    button.addEventListener(eventName, handler, options);
+}
 
-    if (event.keyCode == 32 || event.keyCode == 13) {
-        startGameIfNeeded();
-    }
-
-    if (event.keyCode == 32) {
-        event.preventDefault();
-    }
-
-    if (world && (world.gameOver || world.gameWon)) {
+// Reagiert auf das Drücken eines mobilen Buttons.
+function handlePressStart(keyName, event) {
+    event.preventDefault();
+    if (!world) {
         return;
     }
-
-    if (event.keyCode == 37) {
-        keyboard.LEFT = true;
-    } else if (event.keyCode == 39) {
-        keyboard.RIGHT = true;
-    } else if (event.keyCode == 38) {
-        keyboard.UP = true;
-        keyboard.SPACE = true;
-    } else if (event.keyCode == 40) {
-        keyboard.DOWN = true;
-    } else if (event.keyCode == 32) {
-        keyboard.SPACE = true;
-    } else if (event.keyCode == 68) {
-        keyboard.D = true;
+    world.handleUserInteraction();
+    if (world.gameOver || world.gameWon) {
+        keyboard[keyName] = false;
+        return;
     }
-});
+    startGameIfNeeded();
+    keyboard[keyName] = true;
+}
 
-window.addEventListener('keyup', (event) => {
-    if (event.keyCode == 37) {
-        keyboard.LEFT = false;
-    } else if (event.keyCode == 39) {
-        keyboard.RIGHT = false;
-    } else if (event.keyCode == 38) {
-        keyboard.UP = false;
-        keyboard.SPACE = false;
-    } else if (event.keyCode == 40) {
-        keyboard.DOWN = false;
-    } else if (event.keyCode == 32) {
-        keyboard.SPACE = false;
-    } else if (event.keyCode == 68) {
-        keyboard.D = false;
-    }
-});
+// Reagiert auf das Loslassen eines mobilen Buttons.
+function handlePressEnd(keyName, event) {
+    event.preventDefault();
+    keyboard[keyName] = false;
+}

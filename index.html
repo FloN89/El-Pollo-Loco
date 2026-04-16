@@ -6,56 +6,52 @@
     <link rel="shortcut icon" href="img/2_character_pepe/1_idle/idle/I-1.png" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <title>El Pollo Loco</title>
-
     <script src="classes/drawable-object.class.js"></script>
     <script src="classes/movable-object.class.js"></script>
-    <script src="classes/character.class.js"></script>
-    <script src="classes/chicken.class.js"></script>
-    <script src="classes/cloud.class.js"></script>
     <script src="classes/status-bar.class.js"></script>
-    <script src="classes/world.class.js"></script>
-    <script src="classes/background-object.class.js"></script>
-    <script src="classes/throwable-objects.class.js"></script>
     <script src="classes/keyboard.class.js"></script>
-    <script src="classes/level.class.js"></script>
-    <script src="classes/endboss.class.js"></script>
-    <script src="classes/endboss-status-bar.class.js"></script>
-    <script src="classes/coin.class.js"></script>
-    <script src="classes/coin-status-bar.class.js"></script>
+    <script src="classes/background-object.class.js"></script>
     <script src="classes/bottle.class.js"></script>
+    <script src="classes/coin.class.js"></script>
+    <script src="classes/cloud.class.js"></script>
     <script src="classes/bottle-status-bar.class.js"></script>
-
+    <script src="classes/coin-status-bar.class.js"></script>
+    <script src="classes/endboss-status-bar.class.js"></script>
+    <script src="classes/throwable-objects.class.js"></script>
+    <script src="classes/chicken.class.js"></script>
+    <script src="classes/endboss.class.js"></script>
+    <script src="classes/character.class.js"></script>
+    <script src="classes/level.class.js"></script>
     <script src="levels/level1.js"></script>
+    <script src="classes/world-base.class.js"></script>
+    <script src="classes/world-audio.class.js"></script>
+    <script src="classes/world-gameplay.class.js"></script>
+    <script src="classes/world-renderer.class.js"></script>
+    <script src="classes/world.class.js"></script>
     <script src="js/game.js"></script>
 </head>
-<body onload="initGame()">
+<body onload="initializeGame()">
     <main class="game-page">
         <h1>El Pollo Loco</h1>
-
         <div class="game-stage" id="game-stage">
             <button id="fullscreen-btn" class="fullscreen-btn" type="button" aria-label="Vollbild umschalten">⛶</button>
-
-            <div class="rotate-device-hint">
-                <span>Bitte Tablet oder Handy ins Querformat drehen</span>
-            </div>
-
+            <div class="rotate-device-hint"><span>Bitte Tablet oder Handy ins Querformat drehen</span></div>
             <canvas id="canvas" width="720" height="480"></canvas>
-
+            <a id="start-screen-imprint" class="start-screen-imprint" href="impressum.html" target="_blank" rel="noopener noreferrer" aria-label="Impressum öffnen">Impressum</a>
             <div class="mobile-controls">
                 <div class="mobile-controls-move">
                     <button id="btn-jump" class="mobile-btn mobile-btn-jump" type="button">↑</button>
-
                     <div class="mobile-controls-bottom">
                         <button id="btn-left" class="mobile-btn" type="button">←</button>
                         <button id="btn-right" class="mobile-btn" type="button">→</button>
                     </div>
                 </div>
-
                 <div class="mobile-controls-throw">
                     <button id="btn-throw" class="mobile-btn mobile-btn-throw" type="button">THROW</button>
                 </div>
             </div>
         </div>
+        <a class="page-imprint-link" href="/impressum/impressum.html" target="_blank" rel="noopener noreferrer" aria-label="Impressum öffnen">Impressum</a>
     </main>
 </body>
 </html>

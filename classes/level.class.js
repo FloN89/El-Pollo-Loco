@@ -1,17 +1,20 @@
 class Level {
-    enemies;
-    clouds;
-    backgroundObjects;
-    bottles;
-    coins;
-    level_end_x = 3400;
+    enemies = [];
+    clouds = [];
+    backgroundObjects = [];
+    bottles = [];
+    coins = [];
+    levelEndX = 3400;
+    endbossSpawnX = Infinity;
+    endbossFactory = null;
 
-    constructor(enemies, clouds, backgroundObjects, bottles, coins, level_end_x = 3400) {
+    // Erstellt ein Level mit allen Spielobjekten.
+    constructor(enemies, clouds, backgroundObjects, bottles, coins, levelEndX) {
         this.enemies = enemies;
         this.clouds = clouds;
         this.backgroundObjects = backgroundObjects;
         this.bottles = bottles;
         this.coins = coins;
-        this.level_end_x = level_end_x;
+        this.levelEndX = levelEndX;
     }
 }

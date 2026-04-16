@@ -1,40 +1,42 @@
 class DrawableObject {
-    x = 120;
-    y = 150;
-    img;
+    image;
     imageCache = {};
     currentImage = 0;
-    offset = {
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-    };
+    x = 120;
+    y = 280;
+    height = 150;
+    width = 100;
 
+    // Lädt ein einzelnes Bild.
     loadImage(path) {
-        this.img = new Image();
-        this.img.src = path;
+        this.image = new Image();
+        this.image.src = path;
     }
 
-    loadImages(arr) {
-        arr.forEach((path) => {
-            let img = new Image();
-            img.src = path;
-            this.imageCache[path] = img;
-        });
+    // Lädt mehrere Bilder in den Cache.
+    loadImages(paths) {
+        paths.forEach(this.loadImageIntoCache.bind(this));
     }
 
-    draw(ctx) {
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    // Lädt ein Bild in den Cache.
+    loadImageIntoCache(path) {
+        const image = new Image();
+        image.src = path;
+        this.imageCache[path] = image;
     }
 
-    drawFrame(ctx) {
-        if (this instanceof Character || this instanceof Chicken || this instanceof Endboss) {
-            ctx.beginPath();
-            ctx.lineWidth = '1';
-            ctx.strokeStyle = 'blue';
-            ctx.rect(this.x, this.y, this.width, this.height);
-            ctx.stroke();
-        }
+    // Zeichnet das Objekt auf das Canvas.
+    draw(context) {
+        context.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+
+    // Zeichnet optional den Rahmen.
+    drawFrame() {}
+
+    // Spielt eine Bildfolge ab.
+    playAnimation(paths) {
+        const path = paths[this.currentImage % paths.length];
+        this.image = this.imageCache[path];
+        this.currentImage++;
     }
 }

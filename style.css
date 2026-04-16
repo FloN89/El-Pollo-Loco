@@ -6,7 +6,7 @@
 
 :root {
     --game-font: 'Zabars', Arial, sans-serif;
-    --canvas-bg-image: url('img/backgrounds/canvas-bg-placeholder.png');
+    --canvas-bg-image: none;
     --page-padding: clamp(8px, 2vh, 24px);
     --stage-gap: clamp(8px, 1.5vh, 20px);
     --stage-safe-height: calc(100dvh - (var(--page-padding) * 2) - 88px - var(--stage-gap));
@@ -27,7 +27,8 @@ body,
 button,
 input,
 textarea,
-select {
+select,
+a {
     font-family: var(--game-font);
 }
 
@@ -75,8 +76,7 @@ h1 {
     background-repeat: no-repeat;
 }
 
-.game-stage:fullscreen,
-.game-stage:-webkit-full-screen {
+.game-stage:fullscreen {
     width: 100vw;
     height: 100dvh;
     aspect-ratio: auto;
@@ -134,6 +134,54 @@ canvas {
     line-height: 1.2;
 }
 
+.page-imprint-link,
+.start-screen-imprint {
+    text-decoration: none;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.58);
+    border: 2px solid rgba(255, 255, 255, 0.32);
+    border-radius: 999px;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.page-imprint-link {
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    z-index: 10;
+    padding: 10px 22px;
+    font-size: 1.1rem;
+}
+
+.page-imprint-link:hover,
+.start-screen-imprint:hover {
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.start-screen-imprint {
+    position: absolute;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 7;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 148px;
+    padding: 10px 18px;
+    font-size: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease-in-out;
+}
+
+.game-stage.show-start-screen-imprint .start-screen-imprint {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .mobile-controls {
     display: none;
     position: absolute;
@@ -174,7 +222,6 @@ canvas {
     color: #ffffff;
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
     user-select: none;
-    -webkit-user-select: none;
     touch-action: manipulation;
 }
 
@@ -268,8 +315,13 @@ canvas {
         box-shadow: none;
     }
 
-    .fullscreen-btn {
+    .fullscreen-btn,
+    .page-imprint-link {
         display: none;
+    }
+
+    .start-screen-imprint {
+        display: inline-flex;
     }
 }
 

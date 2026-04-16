@@ -2,89 +2,88 @@ class MovableObject extends DrawableObject {
     speed = 0.15;
     otherDirection = false;
     speedY = 0;
-    acceleration = 2.5;
+    acceleration = 1.5;
     energy = 100;
     lastHit = 0;
-    groundY = 180;
-    gravityInterval = null;
 
+    // Wendet Schwerkraft dauerhaft an.
     applyGravity() {
-        if (this.gravityInterval) {
+        setInterval(this.updateGravity.bind(this), 1000 / 25);
+    }
+
+    // Aktualisiert die Schwerkraft.
+    updateGravity() {
+        if (!this.shouldApplyGravity()) {
             return;
         }
 
-        this.gravityInterval = setInterval(() => {
-            if (this.isAboveGround() || this.speedY > 0) {
-                this.y -= this.speedY;
-                this.speedY -= this.acceleration;
-
-                if (!this.isAboveGround() && this.speedY < 0) {
-                    this.y = this.getGroundY();
-                    this.speedY = 0;
-                }
-            }
-        }, 1000 / 25);
+        this.y -= this.speedY;
+        this.speedY -= this.acceleration;
+        this.stopAtGroundLevel();
     }
 
-    getGroundY() {
-        return this.groundY;
+    // Prüft, ob Schwerkraft aktiv sein soll.
+    shouldApplyGravity() {
+        return this.isAboveGround() || this.speedY > 0;
     }
 
+    // Stoppt das Objekt auf dem Boden.
+    stopAtGroundLevel() {
+        const groundY = this.groundY ?? 180;
+
+        if (this.y <= groundY) {
+            return;
+        }
+
+        this.y = groundY;
+        this.speedY = 0;
+    }
+
+    // Prüft, ob das Objekt in der Luft ist.
     isAboveGround() {
         if (this instanceof ThrowableObjects) {
-            return this.y < this.groundY || this.speedY > 0;
+            return true;
         }
 
-        return this.y < this.getGroundY();
+        return this.y < (this.groundY ?? 180);
     }
 
-    iscolliding(mo) {
-        return this.x + this.width > mo.x &&
-               this.y + this.height > mo.y &&
-               this.x < mo.x + mo.width &&
-               this.y < mo.y + mo.height;
+    // Prüft eine Kollision mit einem anderen Objekt.
+    isCollidingWith(otherObject) {
+        return this.x + this.width > otherObject.x &&
+            this.y + this.height > otherObject.y &&
+            this.x < otherObject.x + otherObject.width &&
+            this.y < otherObject.y + otherObject.height;
     }
 
-    hit(amount = 5) {
-        if (this.isDead()) {
-            return;
-        }
-
-        this.energy -= amount;
-
-        if (this.energy < 0) {
-            this.energy = 0;
-        }
-
-        this.lastHit = new Date().getTime();
-    }
-
-    isHurt() {
-        let timepassed = new Date().getTime() - this.lastHit;
-        timepassed = timepassed / 1000;
-        return timepassed < 1;
-    }
-
-    isDead() {
-        return this.energy === 0;
-    }
-
+    // Bewegt das Objekt nach rechts.
     moveRight() {
         this.x += this.speed;
     }
 
+    // Bewegt das Objekt nach links.
     moveLeft() {
         this.x -= this.speed;
     }
 
-    playAnimation(images) {
-        let i = this.currentImage % images.length;
-        let path = images[i];
-        this.img = this.imageCache[path];
-        this.currentImage++;
+    // Startet einen Sprung.
+    jump(power = 25) {
+        this.speedY = power;
     }
 
-    jump(power = 30) {
-        this.speedY = power;
+    // Fügt Schaden zu.
+    hit(damage = 20) {
+        this.energy = Math.max(0, this.energy - damage);
+        this.lastHit = Date.now();
+    }
+
+    // Prüft, ob das Objekt tot ist.
+    isDead() {
+        return this.energy === 0;
+    }
+
+    // Prüft, ob das Objekt gerade verletzt wurde.
+    isHurt(duration = 1000) {
+        return Date.now() - this.lastHit < duration;
     }
 }
