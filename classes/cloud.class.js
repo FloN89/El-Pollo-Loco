@@ -8,7 +8,7 @@ class Cloud extends MovableObject {
     // Erstellt eine Wolke.
     constructor(x = 0, y = 20, speed = 0.1, wrapX = 3600) {
         super();
-        this.loadImage('img/5_background/layers/4_clouds/1.png');
+        this.loadImage('./img/5_background/layers/4_clouds/1.png');
         this.x = x;
         this.y = y;
         this.speed = speed;

@@ -38,9 +38,9 @@ class WorldBase {
 
     /** Lädt Start- und Endbilder. */
     loadScreenImages() {
-        this.startScreenImage.src = 'img/9_intro_outro_screens/start/startscreen_1.png';
-        this.gameOverImage.src = 'img/You won, you lost/Game Over.png';
-        this.youWinImage.src = 'img/You won, you lost/You Won B.png';
+        this.startScreenImage.src = './img/9_intro_outro_screens/start/startscreen_1.png';
+        this.gameOverImage.src = './img/You won, you lost/Game Over.png';
+        this.youWinImage.src = './img/You won, you lost/You Won B.png';
     }
 
     /** Setzt das gesamte Spiel zurück. */

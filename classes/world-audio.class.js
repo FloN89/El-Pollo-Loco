@@ -8,15 +8,15 @@ class WorldAudio extends WorldBase {
     soundStorageKey = 'el-pollo-loco-sound';
 
     audioPaths = {
-        backgroundMusic: 'audio/background music.mp3',
-        running: 'audio/running sound.mp3',
-        coin: 'audio/coin.mp3',
-        hit: 'audio/hit sound.mp3',
-        bottle: 'audio/bottle sound.mp3',
-        jump: 'audio/jump sound.mp3',
-        winning: 'audio/winning sound.mp3',
-        gameOver: 'audio/game over sound.mp3',
-        snore: 'audio/snore.mp3'
+        backgroundMusic: './audio/background music.mp3',
+        running: './audio/running sound.mp3',
+        coin: './audio/coin.mp3',
+        hit: './audio/hit sound.mp3',
+        bottle: './audio/bottle sound.mp3',
+        jump: './audio/jump sound.mp3',
+        winning: './audio/winning sound.mp3',
+        gameOver: './audio/game over sound.mp3',
+        snore: './audio/snore.mp3'
     };
 
     effectVolume = {
