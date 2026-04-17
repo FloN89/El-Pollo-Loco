@@ -2,12 +2,18 @@ class Endboss extends MovableObject {
     width = 300;
     height = 420;
     y = 55;
-    speed = 3.5;
-    energy = 100;
-    attackDamage = 10;
+    speed = 3.4;
+    patrolSpeed = 3.4;
+    rushSpeed = 6.2;
+    maxEnergy = 160;
+    energy = 160;
+    attackDamage = 15;
     isBossDead = false;
+    isAlerted = false;
     lastAttackAt = 0;
-    attackCooldown = 1000;
+    attackCooldown = 700;
+    attackRange = 170;
+    chaseRange = 560;
     leftBorder = 2880;
     rightBorder = 3280;
     direction = -1;
@@ -54,7 +60,7 @@ class Endboss extends MovableObject {
     ];
 
     /** Creates the end boss. */
-    constructor(x = 3200, leftBorder = 2880, rightBorder = 3280) {
+    constructor(x = 3200, leftBorder = 2740, rightBorder = 3340) {
         super();
         this.loadImage(this.imagePathsAlert[0]);
         this.loadImages(this.imagePathsWalking);
@@ -70,7 +76,7 @@ class Endboss extends MovableObject {
 
     /** Starts the image animation. */
     animate() {
-        setInterval(this.updateAnimation.bind(this), 160);
+        setInterval(this.updateAnimation.bind(this), 120);
     }
 
     /** Updates the current behavior. */
@@ -79,18 +85,48 @@ class Endboss extends MovableObject {
             return false;
         }
 
-        this.moveInsideArena();
+        this.updateSpeed(character);
+        this.movePattern(character);
         this.faceCharacter(character);
         return this.tryAttack(character);
     }
 
-    /** Moves the boss inside the arena. */
-    moveInsideArena() {
+    /** Updates the current boss speed. */
+    updateSpeed(character) {
+        this.isAlerted = this.isCharacterInChaseRange(character);
+        this.speed = this.isAlerted ? this.rushSpeed : this.patrolSpeed;
+    }
+
+    /** Chooses chase or patrol movement. */
+    movePattern(character) {
+        if (this.isAlerted) {
+            this.moveTowardCharacter(character);
+            return;
+        }
+
+        this.patrolArena();
+    }
+
+    /** Moves toward the character. */
+    moveTowardCharacter(character) {
+        const direction = character.x < this.x ? -1 : 1;
+        this.x += this.speed * direction;
+        this.clampInsideArena();
+    }
+
+    /** Moves left and right inside the arena. */
+    patrolArena() {
         this.x += this.speed * this.direction;
 
         if (this.x <= this.leftBorder || this.x >= this.rightBorder) {
             this.direction *= -1;
+            this.clampInsideArena();
         }
+    }
+
+    /** Keeps the boss inside the arena. */
+    clampInsideArena() {
+        this.x = Math.max(this.leftBorder, Math.min(this.x, this.rightBorder));
     }
 
     /** Turns the boss toward the character. */
@@ -110,7 +146,17 @@ class Endboss extends MovableObject {
 
     /** Checks the attack range. */
     isCharacterInAttackRange(character) {
-        return Math.abs(this.x - character.x) < 140;
+        return Math.abs(this.getCharacterDistance(character)) < this.attackRange;
+    }
+
+    /** Checks the chase range. */
+    isCharacterInChaseRange(character) {
+        return Math.abs(this.getCharacterDistance(character)) < this.chaseRange;
+    }
+
+    /** Returns the X distance to the character. */
+    getCharacterDistance(character) {
+        return character.x - this.x;
     }
 
     /** Checks the cooldown. */
@@ -133,12 +179,16 @@ class Endboss extends MovableObject {
             return this.imagePathsHurt;
         }
 
-        return this.isInAttackAnimation() ? this.imagePathsAttack : this.imagePathsWalking;
+        if (this.isInAttackAnimation()) {
+            return this.imagePathsAttack;
+        }
+
+        return this.isAlerted ? this.imagePathsAlert : this.imagePathsWalking;
     }
 
     /** Checks whether the attack animation is active. */
     isInAttackAnimation() {
-        return Date.now() - this.lastAttackAt < 450;
+        return Date.now() - this.lastAttackAt < 500;
     }
 
     /** Handles damage. */
@@ -149,5 +199,10 @@ class Endboss extends MovableObject {
 
         this.hit(damage);
         this.isBossDead = this.energy === 0;
+    }
+
+    /** Returns the health bar percentage. */
+    getEnergyPercentage() {
+        return this.energy / this.maxEnergy * 100;
     }
 }

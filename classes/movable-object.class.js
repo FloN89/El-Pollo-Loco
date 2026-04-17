@@ -5,6 +5,7 @@ class MovableObject extends DrawableObject {
     acceleration = 1.5;
     energy = 100;
     lastHit = 0;
+    lastY = null;
 
     /** Applies gravity continuously. */
     applyGravity() {
@@ -14,9 +15,11 @@ class MovableObject extends DrawableObject {
     /** Updates gravity. */
     updateGravity() {
         if (!this.shouldApplyGravity()) {
+            this.lastY = this.y;
             return;
         }
 
+        this.lastY = this.y;
         this.y -= this.speedY;
         this.speedY -= this.acceleration;
         this.stopAtGroundLevel();

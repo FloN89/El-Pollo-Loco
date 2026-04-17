@@ -100,7 +100,7 @@ function createLevel1() {
     return level;
 }
 
-/** Creates the endboss for level one. */
+/** Creates the end boss for level one. */
 function createEndbossForLevel1() {
-    return new Endboss(3200, 2880, 3280);
+    return new Endboss(3200, 2740, 3340);
 }

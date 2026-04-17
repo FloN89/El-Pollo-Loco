@@ -105,19 +105,19 @@ class WorldGameplay extends WorldAudio {
 
     /** Uses a smaller hitbox so coins are only collected on real contact. */
     isCharacterTouchingCoin(coin) {
-    const coinCenter = this.getCoinCenter(coin);
-    const pickupArea = this.getCharacterCoinPickupArea();
+        const coinCenter = this.getCoinCenter(coin);
+        const pickupArea = this.getCharacterCoinPickupArea();
 
-    return this.isPointInsideArea(coinCenter, pickupArea);
+        return this.isPointInsideArea(coinCenter, pickupArea);
     }
-    
+
     getCoinCenter(coin) {
         return {
             x: coin.x + coin.width / 2,
             y: coin.y + coin.height / 2
         };
     }
-    
+
     getCharacterCoinPickupArea() {
         return {
             left: this.character.x + 12,
@@ -126,14 +126,13 @@ class WorldGameplay extends WorldAudio {
             bottom: this.character.y + 170
         };
     }
-    
+
     isPointInsideArea(point, area) {
         return point.x >= area.left &&
             point.x <= area.right &&
             point.y >= area.top &&
             point.y <= area.bottom;
-    };
-        
+    }
 
     /** Collects a coin. */
     collectCoin(index) {
@@ -316,11 +315,32 @@ class WorldGameplay extends WorldAudio {
 
     /** Checks whether the character lands on a chicken. */
     isJumpingOnEnemy(enemy) {
+        const characterFeet = this.getCharacterFeetHitbox();
+        const currentBottom = characterFeet.bottom;
+        const previousBottom = this.getPreviousCharacterBottom();
+        const enemyTopHitZone = enemy.y + Math.min(35, enemy.height * 0.65);
+
         return this.character.speedY < 0 &&
-            this.character.x + this.character.width > enemy.x &&
-            this.character.x < enemy.x + enemy.width &&
-            this.character.y + this.character.height > enemy.y &&
-            this.character.y + this.character.height < enemy.y + 40;
+            characterFeet.right > enemy.x &&
+            characterFeet.left < enemy.x + enemy.width &&
+            previousBottom <= enemyTopHitZone &&
+            currentBottom >= enemy.y &&
+            currentBottom <= enemy.y + enemy.height;
+    }
+
+    /** Returns a narrower feet hitbox for stomp checks. */
+    getCharacterFeetHitbox() {
+        return {
+            left: this.character.x + 20,
+            right: this.character.x + this.character.width - 20,
+            bottom: this.character.y + this.character.height
+        };
+    }
+
+    /** Returns the character bottom from the previous gravity update. */
+    getPreviousCharacterBottom() {
+        const previousY = this.character.lastY ?? this.character.y;
+        return previousY + this.character.height;
     }
 
     /** Removes an enemy after a delay. */
