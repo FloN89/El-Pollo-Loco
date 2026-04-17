@@ -5,7 +5,7 @@ class Cloud extends MovableObject {
     speed = 0.1;
     wrapX = 3600;
 
-    // Erstellt eine Wolke.
+    /** Creates a cloud. */
     constructor(x = 0, y = 20, speed = 0.1, wrapX = 3600) {
         super();
         this.loadImage('img/5_background/layers/4_clouds/1.png');
@@ -16,18 +16,18 @@ class Cloud extends MovableObject {
         this.animate();
     }
 
-    // Startet die Wolkenbewegung.
+    /** Starts the cloud movement. */
     animate() {
         setInterval(this.updateMovement.bind(this), 1000 / 60);
     }
 
-    // Bewegt die Wolke.
+    /** Moves the cloud. */
     updateMovement() {
         this.x -= this.speed;
         this.wrapToRightSideIfNeeded();
     }
 
-    // Setzt die Wolke rechts neu ein.
+    /** Repositions the cloud on the right side. */
     wrapToRightSideIfNeeded() {
         if (this.x + this.width < -400) {
             this.x = this.wrapX;

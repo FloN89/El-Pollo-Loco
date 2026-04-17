@@ -7,33 +7,33 @@ class DrawableObject {
     height = 150;
     width = 100;
 
-    // Lädt ein einzelnes Bild.
+    /** Loads a single image. */
     loadImage(path) {
         this.image = new Image();
         this.image.src = path;
     }
 
-    // Lädt mehrere Bilder in den Cache.
+    /** Loads multiple images into the cache. */
     loadImages(paths) {
         paths.forEach(this.loadImageIntoCache.bind(this));
     }
 
-    // Lädt ein Bild in den Cache.
+    /** Loads an image into the cache. */
     loadImageIntoCache(path) {
         const image = new Image();
         image.src = path;
         this.imageCache[path] = image;
     }
 
-    // Zeichnet das Objekt auf das Canvas.
+    /** Draws the object on the canvas. */
     draw(context) {
         context.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
 
-    // Zeichnet optional den Rahmen.
+    /** Draws the frame optionally. */
     drawFrame() {}
 
-    // Spielt eine Bildfolge ab.
+    /** Plays an animation sequence. */
     playAnimation(paths) {
         const path = paths[this.currentImage % paths.length];
         this.image = this.imageCache[path];

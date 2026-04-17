@@ -6,12 +6,12 @@ class MovableObject extends DrawableObject {
     energy = 100;
     lastHit = 0;
 
-    // Wendet Schwerkraft dauerhaft an.
+    /** Applies gravity continuously. */
     applyGravity() {
         setInterval(this.updateGravity.bind(this), 1000 / 25);
     }
 
-    // Aktualisiert die Schwerkraft.
+    /** Updates gravity. */
     updateGravity() {
         if (!this.shouldApplyGravity()) {
             return;
@@ -22,12 +22,12 @@ class MovableObject extends DrawableObject {
         this.stopAtGroundLevel();
     }
 
-    // Prüft, ob Schwerkraft aktiv sein soll.
+    /** Checks whether gravity should be active. */
     shouldApplyGravity() {
         return this.isAboveGround() || this.speedY > 0;
     }
 
-    // Stoppt das Objekt auf dem Boden.
+    /** Stops the object on the ground. */
     stopAtGroundLevel() {
         const groundY = this.groundY ?? 180;
 
@@ -39,7 +39,7 @@ class MovableObject extends DrawableObject {
         this.speedY = 0;
     }
 
-    // Prüft, ob das Objekt in der Luft ist.
+    /** Checks whether the object is above the ground. */
     isAboveGround() {
         if (this instanceof ThrowableObjects) {
             return true;
@@ -48,7 +48,7 @@ class MovableObject extends DrawableObject {
         return this.y < (this.groundY ?? 180);
     }
 
-    // Prüft eine Kollision mit einem anderen Objekt.
+    /** Checks a collision with another object. */
     isCollidingWith(otherObject) {
         return this.x + this.width > otherObject.x &&
             this.y + this.height > otherObject.y &&
@@ -56,33 +56,33 @@ class MovableObject extends DrawableObject {
             this.y < otherObject.y + otherObject.height;
     }
 
-    // Bewegt das Objekt nach rechts.
+    /** Moves the object to the right. */
     moveRight() {
         this.x += this.speed;
     }
 
-    // Bewegt das Objekt nach links.
+    /** Moves the object to the left. */
     moveLeft() {
         this.x -= this.speed;
     }
 
-    // Startet einen Sprung.
+    /** Starts a jump. */
     jump(power = 25) {
         this.speedY = power;
     }
 
-    // Fügt Schaden zu.
+    /** Applies damage. */
     hit(damage = 20) {
         this.energy = Math.max(0, this.energy - damage);
         this.lastHit = Date.now();
     }
 
-    // Prüft, ob das Objekt tot ist.
+    /** Checks whether the object is dead. */
     isDead() {
         return this.energy === 0;
     }
 
-    // Prüft, ob das Objekt gerade verletzt wurde.
+    /** Checks whether the object was recently hurt. */
     isHurt(duration = 1000) {
         return Date.now() - this.lastHit < duration;
     }

@@ -23,7 +23,7 @@ class ThrowableObjects extends MovableObject {
         'img/6_salsa_bottle/bottle_rotation/bottle_splash/6_bottle_splash.png'
     ];
 
-    // Erstellt eine geworfene Flasche.
+    /** Creates a thrown bottle. */
     constructor(x, y, direction = 1) {
         super();
         this.loadImage(this.imagePathsFlying[0]);
@@ -36,13 +36,13 @@ class ThrowableObjects extends MovableObject {
         this.animate();
     }
 
-    // Startet Flug und Animation.
+    /** Starts flight and animation. */
     animate() {
         setInterval(this.updateFlight.bind(this), 1000 / 60);
         setInterval(this.updateAnimation.bind(this), 90);
     }
 
-    // Bewegt die Flasche im Flug.
+    /** Moves the bottle in flight. */
     updateFlight() {
         if (this.isBroken || this.isFinished) {
             return;
@@ -55,12 +55,12 @@ class ThrowableObjects extends MovableObject {
         }
     }
 
-    // Prüft, ob die Flasche auf dem Boden angekommen ist.
+    /** Checks whether the bottle has reached the ground. */
     hasHitGround() {
         return this.y >= this.groundY && this.speedY <= 0;
     }
 
-    // Wechselt das passende Bild.
+    /** Switches to the correct image. */
     updateAnimation() {
         if (this.isBroken) {
             this.playAnimation(this.imagePathsSplash);
@@ -70,7 +70,7 @@ class ThrowableObjects extends MovableObject {
         this.playAnimation(this.imagePathsFlying);
     }
 
-    // Löst die Splash-Animation aus.
+    /** Triggers the splash animation. */
     splash() {
         if (this.isBroken || this.isFinished) {
             return;
@@ -83,12 +83,12 @@ class ThrowableObjects extends MovableObject {
         this.scheduleFinish();
     }
 
-    // Markiert die Flasche später als fertig.
+    /** Marks the bottle as finished later. */
     scheduleFinish() {
         setTimeout(this.finish.bind(this), 350);
     }
 
-    // Beendet das Wurfobjekt.
+    /** Finishes the throwable object. */
     finish() {
         this.isFinished = true;
         this.throwSpeed = 0;

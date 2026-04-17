@@ -46,8 +46,14 @@
     }
 
     .start-screen-imprint {
-        left: 10px;
+        right: 10px;
+        left: auto;
         bottom: 10px;
+        transform: none;
+    }
+
+    .start-screen-imprint:hover {
+        transform: translateY(-1px);
     }
 
     .page-imprint-link {
@@ -106,21 +112,18 @@
 
     .start-screen-imprint {
         display: inline-flex;
-        left: 50%;
+        right: 16px;
+        left: auto;
         bottom: 16px;
-        transform: translateX(-50%);
+        transform: none;
     }
 
     .start-screen-imprint:hover {
-        transform: translateX(-50%) translateY(-1px);
+        transform: translateY(-1px);
     }
 }
 
-/* =========================================================
-   MOBILE + TABLET: Nur Querformat spielbar, Canvas füllt
-   den ganzen Bildschirm, Buttons bleiben an gewohnter Stelle
-   ========================================================= */
-
+/** Mobile + tablet: only playable in landscape, the canvas fills the full screen, and the buttons stay in their usual positions. */
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
     html,
     body {
@@ -185,14 +188,15 @@
     }
 
     .start-screen-imprint {
-        left: 50%;
+        right: 14px;
+        left: auto;
         bottom: 14px;
-        transform: translateX(-50%) scale(0.92);
-        transform-origin: center;
+        transform: scale(0.92);
+        transform-origin: bottom right;
     }
 
     .start-screen-imprint:hover {
-        transform: translateX(-50%) translateY(-1px) scale(0.92);
+        transform: translateY(-1px) scale(0.92);
     }
 
     .mobile-controls {
@@ -232,6 +236,7 @@
         padding: 16px;
     }
 }
+
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
     html,
     body {

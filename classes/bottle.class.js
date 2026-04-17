@@ -7,7 +7,7 @@ class Bottle extends DrawableObject {
         'img/6_salsa_bottle/2_salsa_bottle_on_ground.png'
     ];
 
-    // Erstellt eine Flasche.
+    /** Creates a bottle. */
     constructor(x, y) {
         super();
         this.loadImages(this.imagePaths);
@@ -16,7 +16,7 @@ class Bottle extends DrawableObject {
         this.y = y;
     }
 
-    // Liefert ein zufälliges Flaschenbild.
+    /** Returns a random bottle image. */
     getRandomImagePath() {
         return this.imagePaths[Math.floor(Math.random() * this.imagePaths.length)];
     }

@@ -13,7 +13,7 @@ class Chicken extends MovableObject {
 
     imagePathDead = 'img/3_enemies_chicken/chicken_normal/2_dead/dead.png';
 
-    // Erstellt ein Huhn.
+    /** Creates a chicken. */
     constructor(x) {
         super();
         this.loadImage(this.imagePathsWalking[0]);
@@ -23,13 +23,13 @@ class Chicken extends MovableObject {
         this.animate();
     }
 
-    // Startet Bewegung und Animation.
+    /** Starts movement and animation. */
     animate() {
         setInterval(this.updateMovement.bind(this), 1000 / 60);
         setInterval(this.updateAnimation.bind(this), 140);
     }
 
-    // Bewegt das Huhn.
+    /** Moves the chicken. */
     updateMovement() {
         if (this.isPaused()) {
             return;
@@ -38,12 +38,12 @@ class Chicken extends MovableObject {
         this.moveLeft();
     }
 
-    // Prüft, ob das Huhn pausieren soll.
+    /** Checks whether the chicken should pause. */
     isPaused() {
         return this.isDeadChicken || !this.world || !this.world.gameStarted || this.world.gameOver || this.world.gameWon;
     }
 
-    // Aktualisiert das Huhnbild.
+    /** Updates the chicken image. */
     updateAnimation() {
         if (this.isDeadChicken) {
             this.loadImage(this.imagePathDead);
@@ -53,7 +53,7 @@ class Chicken extends MovableObject {
         this.playAnimation(this.imagePathsWalking);
     }
 
-    // Lässt das Huhn sterben.
+    /** Kills the chicken. */
     die() {
         this.isDeadChicken = true;
         this.loadImage(this.imagePathDead);

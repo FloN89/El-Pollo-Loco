@@ -7,7 +7,7 @@ class Coin extends DrawableObject {
         'img/8_coin/coin_2.png'
     ];
 
-    // Erstellt eine Münze.
+    /** Creates a coin. */
     constructor(x, y) {
         super();
         this.loadImages(this.imagePaths);
@@ -17,12 +17,12 @@ class Coin extends DrawableObject {
         this.animate();
     }
 
-    // Startet die Münzanimation.
+    /** Starts the coin animation. */
     animate() {
         setInterval(this.updateAnimation.bind(this), 250);
     }
 
-    // Aktualisiert das Münzbild.
+    /** Updates the coin image. */
     updateAnimation() {
         this.playAnimation(this.imagePaths);
     }

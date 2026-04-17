@@ -1,5 +1,5 @@
 class WorldGameplay extends WorldAudio {
-    /** Aktualisiert die komplette Spielwelt. */
+    /** Updates the entire game world. */
     updateWorld() {
         if (this.isLoopPaused()) {
             return;
@@ -13,7 +13,7 @@ class WorldGameplay extends WorldAudio {
         this.checkGameState();
     }
 
-    /** Prüft Sammelobjekte und Würfe. */
+    /** Checks collectibles and throw actions. */
     checkCollectiblesAndThrows() {
         this.checkBottleCollisions();
         this.checkCoinCollisions();
@@ -21,13 +21,13 @@ class WorldGameplay extends WorldAudio {
         this.checkThrowableCollisions();
     }
 
-    /** Prüft Sieg und Niederlage. */
+    /** Checks victory and defeat conditions. */
     checkGameState() {
         this.scheduleGameOverIfNeeded();
         this.finishGameIfBossIsDead();
     }
 
-    /** Plant das Game Over. */
+    /** Schedules the game over state. */
     scheduleGameOverIfNeeded() {
         if (!this.character.isDead() || this.endScreenScheduled) {
             return;
@@ -39,7 +39,7 @@ class WorldGameplay extends WorldAudio {
         setTimeout(this.finishGameOver.bind(this), 900);
     }
 
-    /** Beendet das Spiel mit Niederlage. */
+    /** Finishes the game with a defeat. */
     finishGameOver() {
         this.gameOver = true;
         this.clearInputStates();
@@ -47,7 +47,7 @@ class WorldGameplay extends WorldAudio {
         this.playGameOverSound();
     }
 
-    /** Beendet das Spiel nach Boss-Tod. */
+    /** Finishes the game after the boss dies. */
     finishGameIfBossIsDead() {
         const endboss = this.getEndboss();
 
@@ -61,7 +61,7 @@ class WorldGameplay extends WorldAudio {
         this.playWinningSound();
     }
 
-    /** Prüft Flaschenkollisionen. */
+    /** Checks bottle collisions. */
     checkBottleCollisions() {
         for (let index = this.level.bottles.length - 1; index >= 0; index--) {
             if (this.canCollectBottle(index)) {
@@ -70,34 +70,72 @@ class WorldGameplay extends WorldAudio {
         }
     }
 
-    /** Prüft, ob eine Flasche eingesammelt werden kann. */
+    /** Checks whether a bottle can be collected. */
     canCollectBottle(index) {
         const bottle = this.level.bottles[index];
         return this.character.isCollidingWith(bottle) && this.collectedBottles < this.maxBottles;
     }
 
-    /** Sammelt eine Flasche ein. */
+    /** Collects a bottle. */
     collectBottle(index) {
         this.level.bottles.splice(index, 1);
         this.collectedBottles++;
         this.bottleBar.setPercentage(this.collectedBottlePercentage());
     }
 
-    /** Liefert den Flaschenfortschritt. */
+    /** Returns the bottle progress. */
     collectedBottlePercentage() {
         return this.collectedBottles / this.maxBottles * 100;
     }
 
-    /** Prüft Münzkollisionen. */
+    /** Checks coin collisions. */
     checkCoinCollisions() {
         for (let index = this.level.coins.length - 1; index >= 0; index--) {
-            if (this.character.isCollidingWith(this.level.coins[index])) {
+            if (this.canCollectCoin(index)) {
                 this.collectCoin(index);
             }
         }
     }
 
-    /** Sammelt eine Münze ein. */
+    /** Checks whether a coin can be collected. */
+    canCollectCoin(index) {
+        const coin = this.level.coins[index];
+        return this.isCharacterTouchingCoin(coin);
+    }
+
+    /** Uses a smaller hitbox so coins are only collected on real contact. */
+    isCharacterTouchingCoin(coin) {
+    const coinCenter = this.getCoinCenter(coin);
+    const pickupArea = this.getCharacterCoinPickupArea();
+
+    return this.isPointInsideArea(coinCenter, pickupArea);
+    }
+    
+    getCoinCenter(coin) {
+        return {
+            x: coin.x + coin.width / 2,
+            y: coin.y + coin.height / 2
+        };
+    }
+    
+    getCharacterCoinPickupArea() {
+        return {
+            left: this.character.x + 12,
+            right: this.character.x + this.character.width - 12,
+            top: this.character.y + 15,
+            bottom: this.character.y + 170
+        };
+    }
+    
+    isPointInsideArea(point, area) {
+        return point.x >= area.left &&
+            point.x <= area.right &&
+            point.y >= area.top &&
+            point.y <= area.bottom;
+    };
+        
+
+    /** Collects a coin. */
     collectCoin(index) {
         this.level.coins.splice(index, 1);
         this.collectedCoins++;
@@ -105,12 +143,12 @@ class WorldGameplay extends WorldAudio {
         this.playCoinSound();
     }
 
-    /** Liefert den Münzfortschritt. */
+    /** Returns the coin progress. */
     collectedCoinPercentage() {
         return this.collectedCoins / this.totalCoins * 100;
     }
 
-    /** Prüft den Wurfknopf. */
+    /** Checks the throw button. */
     checkThrowObjects() {
         if (this.canThrowBottle()) {
             this.throwBottle();
@@ -119,12 +157,12 @@ class WorldGameplay extends WorldAudio {
         this.throwKeyWasPressed = this.keyboard.D;
     }
 
-    /** Prüft, ob eine Flasche geworfen werden darf. */
+    /** Checks whether a bottle can be thrown. */
     canThrowBottle() {
         return this.keyboard.D && !this.throwKeyWasPressed && this.collectedBottles > 0;
     }
 
-    /** Wirft eine Flasche. */
+    /** Throws a bottle. */
     throwBottle() {
         const startX = this.getThrowableStartX();
         const startY = this.character.y + 100;
@@ -135,39 +173,40 @@ class WorldGameplay extends WorldAudio {
         this.bottleBar.setPercentage(this.collectedBottlePercentage());
     }
 
-    /** Liefert die X-Startposition für einen Wurf. */
+    /** Returns the throw start X position. */
     getThrowableStartX() {
         return this.character.otherDirection ? this.character.x : this.character.x + this.character.width - 20;
     }
 
-    /** Liefert die Wurfrichtung. */
+    /** Returns the throw direction. */
     getThrowDirection() {
         return this.character.otherDirection ? -1 : 1;
     }
 
-    /** Prüft Kollisionen von Wurfobjekten. */
+    /** Checks collisions for throwable objects. */
     checkThrowableCollisions() {
         this.throwableObjects.forEach(this.handleThrowableCollision.bind(this));
     }
 
-    /** Verarbeitet Treffer eines Wurfobjekts. */
+    /** Handles hits from a throwable object. */
     handleThrowableCollision(throwableBottle) {
         if (throwableBottle.isBroken) {
             return;
         }
 
         const hitEnemy = this.getHitEnemyForThrowable(throwableBottle);
+
         if (hitEnemy) {
             this.handleThrowableHit(throwableBottle, hitEnemy);
         }
     }
 
-    /** Findet den getroffenen Gegner. */
+    /** Finds the enemy hit by a throwable object. */
     getHitEnemyForThrowable(throwableBottle) {
         return this.level.enemies.find((enemy) => this.canThrowableHitEnemy(throwableBottle, enemy));
     }
 
-    /** Prüft, ob ein Wurfobjekt einen Gegner trifft. */
+    /** Checks whether a throwable object can hit an enemy. */
     canThrowableHitEnemy(throwableBottle, enemy) {
         if (this.isDeadStompEnemy(enemy)) {
             return false;
@@ -176,107 +215,106 @@ class WorldGameplay extends WorldAudio {
         return throwableBottle.isCollidingWith(enemy);
     }
 
-    /** Reagiert auf einen Wurf-Treffer. */
+    /** Handles a throwable hit. */
     handleThrowableHit(throwableBottle, enemy) {
         throwableBottle.splash();
         this.playHitSound();
         enemy instanceof Endboss ? this.damageEndboss(enemy) : this.defeatChicken(enemy);
     }
 
-    /** Verarbeitet Schaden am Endboss. */
+    /** Applies damage to the endboss. */
     damageEndboss(endboss) {
         endboss.takeDamage(20);
         this.endbossBar.setPercentage(endboss.energy);
     }
 
-    /** Besiegt ein Huhn. */
+    /** Defeats a chicken. */
     defeatChicken(chicken) {
         chicken.die();
         this.scheduleEnemyRemoval(chicken, 150);
     }
 
-    /** Prüft das Verhalten des Endbosses. */
-checkEndbossBehavior() {
-    const endboss = this.getEndboss();
+    /** Checks the endboss behavior. */
+    checkEndbossBehavior() {
+        const endboss = this.getEndboss();
 
-    if (!endboss || endboss.isBossDead) {
-        return;
+        if (!endboss || endboss.isBossDead) {
+            return;
+        }
+
+        if (endboss.updateBehavior(this.character) && !this.character.isHurt()) {
+            this.damageCharacter(20);
+        }
     }
 
-    if (endboss.updateBehavior(this.character) && !this.character.isHurt()) {
-        this.damageCharacter(20);
+    /** Applies damage to the character. */
+    damageCharacter(amount = 20) {
+        this.character.hit(amount);
+        this.playHitSound();
     }
-}
 
-    /** Fügt dem Charakter Schaden zu. */
-damageCharacter(amount = 20) {
-    this.character.hit(amount);
-    this.playHitSound();
-}
-
-    /** Entfernt abgeschlossene Wurfobjekte. */
+    /** Removes finished throwable objects. */
     removeFinishedThrowableObjects() {
         this.throwableObjects = this.throwableObjects.filter(this.isThrowableStillActive);
     }
 
-    /** Prüft, ob ein Wurfobjekt aktiv bleibt. */
+    /** Checks whether a throwable object stays active. */
     isThrowableStillActive(throwableBottle) {
         return !throwableBottle.isFinished;
     }
 
-    /** Prüft Kollisionen zwischen Charakter und Gegnern. */
+    /** Checks collisions between the character and enemies. */
     checkCollisions() {
         for (let index = this.level.enemies.length - 1; index >= 0; index--) {
             this.handleEnemyCollision(this.level.enemies[index]);
         }
     }
 
-    /** Verarbeitet eine Gegnerkollision. */
-handleEnemyCollision(enemy) {
-    if (!this.character.isCollidingWith(enemy)) {
-        return;
+    /** Handles an enemy collision. */
+    handleEnemyCollision(enemy) {
+        if (!this.character.isCollidingWith(enemy)) {
+            return;
+        }
+
+        if (this.canJumpOnEnemy(enemy)) {
+            this.jumpOnChicken(enemy);
+            return;
+        }
+
+        if (this.canEnemyDamageCharacter(enemy)) {
+            this.damageCharacter(20);
+        }
     }
 
-    if (this.canJumpOnEnemy(enemy)) {
-        this.jumpOnChicken(enemy);
-        return;
-    }
-
-    if (this.canEnemyDamageCharacter(enemy)) {
-        this.damageCharacter(20);
-    }
-}
-
-    /** Prüft, ob ein Gegner angesprungen werden kann. */
+    /** Checks whether an enemy can be jumped on. */
     canJumpOnEnemy(enemy) {
         return this.isStompEnemy(enemy) && !enemy.isDeadChicken && this.isJumpingOnEnemy(enemy);
     }
 
-    /** Prüft, ob ein Huhn Schaden machen darf. */
+    /** Checks whether a chicken can damage the character. */
     canEnemyDamageCharacter(enemy) {
         return this.isStompEnemy(enemy) && !enemy.isDeadChicken && !this.character.isHurt();
     }
 
-    /** Prüft normale und kleine Hühner. */
+    /** Checks regular and small chickens. */
     isStompEnemy(enemy) {
         return enemy instanceof Chicken || enemy instanceof SmallChicken;
     }
 
-    /** Prüft, ob ein Huhn schon tot ist. */
+    /** Checks whether a stomp enemy is already dead. */
     isDeadStompEnemy(enemy) {
         return this.isStompEnemy(enemy) && enemy.isDeadChicken;
     }
 
-    /** Verarbeitet das Springen auf ein Huhn. */
+    /** Handles jumping on a chicken. */
     jumpOnChicken(chicken) {
         chicken.die();
-        this.character.speedY = 15;
-        this.character.rememberAction();
+        this.character.bounce(15);
         this.playHitSound();
         this.scheduleEnemyRemoval(chicken, 200);
     }
 
-    /** Prüft, ob der Charakter auf einem Huhn landet. */
+    /** Checks whether the character lands on a chicken. */
     isJumpingOnEnemy(enemy) {
         return this.character.speedY < 0 &&
             this.character.x + this.character.width > enemy.x &&
@@ -285,12 +323,12 @@ handleEnemyCollision(enemy) {
             this.character.y + this.character.height < enemy.y + 40;
     }
 
-    /** Entfernt einen Gegner zeitversetzt. */
+    /** Removes an enemy after a delay. */
     scheduleEnemyRemoval(enemy, delay) {
         setTimeout(() => this.removeEnemyIfPresent(enemy), delay);
     }
 
-    /** Entfernt einen Gegner, falls er noch existiert. */
+    /** Removes an enemy if it still exists. */
     removeEnemyIfPresent(enemy) {
         const enemyIndex = this.level.enemies.indexOf(enemy);
 

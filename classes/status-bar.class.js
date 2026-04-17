@@ -40,7 +40,7 @@ class StatusBar extends DrawableObject {
     height = 48;
     imagePaths = [];
 
-    /** Erstellt eine Statusleiste. */
+    /** Creates a status bar. */
     constructor(config) {
         super();
         this.applyConfiguration(config);
@@ -48,7 +48,7 @@ class StatusBar extends DrawableObject {
         this.setPercentage(this.percentage);
     }
 
-    /** Übernimmt die Konfiguration. */
+    /** Applies the configuration. */
     applyConfiguration(config) {
         this.x = config.x;
         this.y = config.y;
@@ -56,18 +56,18 @@ class StatusBar extends DrawableObject {
         this.imagePaths = config.imagePaths;
     }
 
-    /** Setzt den Prozentwert und das Bild. */
+    /** Sets the percentage value and image. */
     setPercentage(percentage) {
         this.percentage = Math.max(0, Math.min(100, percentage));
         this.image = this.imageCache[this.getImagePathForPercentage()];
     }
 
-    /** Liefert das Bild passend zum Prozentwert. */
+    /** Returns the image that matches the percentage. */
     getImagePathForPercentage() {
         return this.imagePaths[this.getImageIndexForPercentage()];
     }
 
-    /** Liefert den passenden Bildindex. */
+    /** Returns the matching image index. */
     getImageIndexForPercentage() {
         if (this.percentage === 100) {
             return 5;
@@ -76,28 +76,28 @@ class StatusBar extends DrawableObject {
         return this.getRoundedImageIndex();
     }
 
-    /** Rundet den Prozentwert auf einen Bildindex. */
+    /** Rounds the percentage value to an image index. */
     getRoundedImageIndex() {
         return Math.max(0, Math.ceil(this.percentage / 20));
     }
 }
 
 class BottleStatusBar extends StatusBar {
-    /** Erstellt die Flaschenleiste. */
+    /** Creates the bottle bar. */
     constructor() {
         super({ x: 10, y: 50, percentage: 0, imagePaths: BOTTLE_STATUS_BAR_IMAGES });
     }
 }
 
 class CoinStatusBar extends StatusBar {
-    /** Erstellt die Münzleiste. */
+    /** Creates the coin bar. */
     constructor() {
         super({ x: 10, y: 90, percentage: 0, imagePaths: COIN_STATUS_BAR_IMAGES });
     }
 }
 
 class EndbossStatusBar extends StatusBar {
-    /** Erstellt die Endboss-Leiste. */
+    /** Creates the endboss bar. */
     constructor() {
         super({ x: 520, y: 10, percentage: 100, imagePaths: ENDBOSS_STATUS_BAR_IMAGES });
     }

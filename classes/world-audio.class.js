@@ -28,7 +28,7 @@ class WorldAudio extends WorldBase {
         gameOver: 0.7
     };
 
-    /** Erstellt die Audioverwaltung. */
+    /** Creates the audio manager. */
     constructor(canvas, keyboard) {
         super(canvas, keyboard);
         this.loadSoundSetting();
@@ -36,7 +36,7 @@ class WorldAudio extends WorldBase {
         this.synchronizeAudioState();
     }
 
-    /** Liest die gespeicherte Soundeinstellung. */
+    /** Loads the saved sound setting. */
     loadSoundSetting() {
         const value = localStorage.getItem(this.soundStorageKey);
 
@@ -45,12 +45,12 @@ class WorldAudio extends WorldBase {
         }
     }
 
-    /** Speichert die aktuelle Soundeinstellung. */
+    /** Saves the current sound setting. */
     saveSoundSetting() {
         localStorage.setItem(this.soundStorageKey, String(this.soundEnabled));
     }
 
-    /** Richtet alle Audiodateien ein. */
+    /** Sets up all audio files. */
     setupAudio() {
         this.backgroundMusic = this.createLoopingAudio(this.audioPaths.backgroundMusic, 0.22);
         this.runningSound = this.createLoopingAudio(this.audioPaths.running, 0.35);
@@ -58,7 +58,7 @@ class WorldAudio extends WorldBase {
         this.attemptAutomaticAudioStart();
     }
 
-    /** Erstellt ein wiederholtes Audioelement. */
+    /** Creates a looping audio element. */
     createLoopingAudio(source, volume = 1) {
         const audio = new Audio(source);
         audio.preload = 'auto';
@@ -67,7 +67,7 @@ class WorldAudio extends WorldBase {
         return audio;
     }
 
-    /** Erstellt ein einmaliges Effektgeräusch. */
+    /** Creates a one-shot effect sound. */
     createEffectAudio(source, volume = 1) {
         const audio = new Audio(source);
         audio.preload = 'auto';
@@ -75,19 +75,19 @@ class WorldAudio extends WorldBase {
         return audio;
     }
 
-    /** Versucht den Ton direkt beim Laden zu starten. */
+    /** Tries to start audio directly on load. */
     attemptAutomaticAudioStart() {
         this.playLoopingAudio(this.backgroundMusic);
         this.stopAudio(this.runningSound);
         this.stopAudio(this.snoreSound);
     }
 
-    /** Reagiert auf eine echte Nutzerinteraktion. */
+    /** Handles a real user interaction. */
     handleUserInteraction() {
         this.synchronizeAudioState();
     }
 
-    /** Synchronisiert alle laufenden Sounds. */
+    /** Synchronizes all active sounds. */
     synchronizeAudioState() {
         this.synchronizeBackgroundMusic();
         this.synchronizeRunningSound();
@@ -95,7 +95,7 @@ class WorldAudio extends WorldBase {
         this.stopAllEffectSoundsIfMuted();
     }
 
-    /** Hält die Hintergrundmusik aktuell. */
+    /** Keeps the background music state up to date. */
     synchronizeBackgroundMusic() {
         if (!this.soundEnabled) {
             this.stopAudio(this.backgroundMusic);
@@ -105,32 +105,32 @@ class WorldAudio extends WorldBase {
         this.playLoopingAudio(this.backgroundMusic);
     }
 
-    /** Hält das Laufgeräusch aktuell. */
+    /** Keeps the running sound state up to date. */
     synchronizeRunningSound() {
         const shouldPlay = this.soundEnabled && this.isRunningSoundActive;
         shouldPlay ? this.playLoopingAudio(this.runningSound) : this.stopAudio(this.runningSound);
     }
 
-    /** Hält das Schnarchen aktuell. */
+    /** Keeps the snoring sound state up to date. */
     synchronizeSnoreSound() {
         const shouldPlay = this.soundEnabled && this.gameStarted && this.character?.isSleeping;
         shouldPlay ? this.playLoopingAudio(this.snoreSound) : this.stopAudio(this.snoreSound);
     }
 
-    /** Stoppt Effekt-Sounds beim Stummschalten. */
-        stopAllEffectSoundsIfMuted() {
-            if (!this.soundEnabled) {
-               this.stopAllEffectSounds();
+    /** Stops effect sounds when audio is muted. */
+    stopAllEffectSoundsIfMuted() {
+        if (!this.soundEnabled) {
+            this.stopAllEffectSounds();
+        }
     }
-}
 
-    /** Startet oder stoppt das Laufgeräusch. */
+    /** Starts or stops the running sound. */
     updateRunningSound(isRunning) {
         this.isRunningSoundActive = isRunning;
         this.synchronizeRunningSound();
     }
 
-    /** Startet ein Loop-Audio sicher. */
+    /** Starts a loop audio safely. */
     playLoopingAudio(audio) {
         if (!audio || !audio.paused) {
             return;
@@ -139,7 +139,7 @@ class WorldAudio extends WorldBase {
         audio.play().catch(() => {});
     }
 
-    /** Stoppt ein Audioelement komplett. */
+    /** Stops an audio element completely. */
     stopAudio(audio) {
         if (!audio) {
             return;
@@ -149,7 +149,7 @@ class WorldAudio extends WorldBase {
         audio.currentTime = 0;
     }
 
-    /** Spielt einen benannten Effekt ab. */
+    /** Plays a named effect. */
     playNamedEffect(name) {
         if (!this.soundEnabled) {
             return;
@@ -160,61 +160,62 @@ class WorldAudio extends WorldBase {
         audio.play().catch(() => {});
     }
 
-    /** Merkt sich einen laufenden Effekt-Sound. */
+    /** Stores a running effect sound. */
     registerEffectAudio(audio) {
         this.activeEffectSounds ??= [];
         this.activeEffectSounds.push(audio);
         audio.addEventListener('ended', () => this.removeFinishedEffect(audio));
     }
 
-    /** Entfernt einen beendeten Effekt-Sound. */
+    /** Removes a finished effect sound. */
     removeFinishedEffect(audio) {
         this.activeEffectSounds = (this.activeEffectSounds ?? []).filter((sound) => sound !== audio);
     }
 
-    /** Stoppt alle Effekt-Sounds. */
+    /** Stops all effect sounds. */
     stopAllEffectSounds() {
         (this.activeEffectSounds ?? []).forEach((audio) => this.stopAudio(audio));
         this.activeEffectSounds = [];
     }
-    /** Schaltet Ton an oder aus und speichert ihn. */
+
+    /** Toggles sound on or off and saves the setting. */
     toggleSound() {
         this.soundEnabled = !this.soundEnabled;
         this.saveSoundSetting();
         this.synchronizeAudioState();
     }
 
-    /** Spielt das Münzgeräusch. */
+    /** Plays the coin sound. */
     playCoinSound() {
         this.playNamedEffect('coin');
     }
 
-    /** Spielt das Flaschenwurfgeräusch. */
+    /** Plays the bottle throw sound. */
     playBottleThrowSound() {
         this.playNamedEffect('bottle');
     }
 
-    /** Spielt das Treffergeräusch. */
+    /** Plays the hit sound. */
     playHitSound() {
         this.playNamedEffect('hit');
     }
 
-    /** Spielt das Sprunggeräusch. */
+    /** Plays the jump sound. */
     playJumpSound() {
         this.playNamedEffect('jump');
     }
 
-    /** Spielt das Sieggeräusch. */
+    /** Plays the winning sound. */
     playWinningSound() {
         this.playNamedEffect('winning');
     }
 
-    /** Spielt das Game-Over-Geräusch. */
+    /** Plays the game over sound. */
     playGameOverSound() {
         this.playNamedEffect('gameOver');
     }
 
-    /** Stoppt alle Dauersounds. */
+    /** Stops all looping sounds. */
     stopAllLoopingSounds() {
         this.stopAudio(this.backgroundMusic);
         this.stopAudio(this.runningSound);

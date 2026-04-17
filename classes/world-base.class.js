@@ -25,7 +25,7 @@ class WorldBase {
     gameOverImage = new Image();
     youWinImage = new Image();
 
-    /** Erstellt die Spielwelt. */
+    /** Creates the game world. */
     constructor(canvas, keyboard) {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
@@ -36,14 +36,14 @@ class WorldBase {
         this.startLoop();
     }
 
-    /** Lädt Start- und Endbilder. */
+    /** Loads start and end images. */
     loadScreenImages() {
         this.startScreenImage.src = 'img/9_intro_outro_screens/start/startscreen_1.png';
         this.gameOverImage.src = 'img/You won, you lost/Game Over.png';
         this.youWinImage.src = 'img/You won, you lost/You Won B.png';
     }
 
-    /** Setzt das gesamte Spiel zurück. */
+    /** Resets the entire game. */
     resetGame() {
         this.detachOldCharacter();
         this.clearInputStates();
@@ -52,7 +52,7 @@ class WorldBase {
         this.synchronizeAudioState();
     }
 
-    /** Trennt alte Weltreferenzen. */
+    /** Detaches old world references. */
     detachOldCharacter() {
         if (this.character) {
             this.character.world = null;
@@ -63,12 +63,12 @@ class WorldBase {
         }
     }
 
-    /** Trennt die Welt von einem Gegner. */
+    /** Detaches the world from an enemy. */
     detachEnemyWorld(enemy) {
         enemy.world = null;
     }
 
-    /** Baut einen frischen Spielzustand auf. */
+    /** Builds a fresh game state. */
     buildFreshGameState() {
         this.level = createLevel1();
         this.character = new Character();
@@ -79,17 +79,17 @@ class WorldBase {
         this.resetProgressValues();
     }
 
-    /** Erstellt die Lebensleiste. */
+    /** Creates the health bar. */
     createHealthBar() {
         return new StatusBar(this.createHealthBarConfiguration());
     }
 
-    /** Liefert die Konfiguration der Lebensleiste. */
+    /** Returns the health bar configuration. */
     createHealthBarConfiguration() {
         return { x: 10, y: 10, percentage: 100, imagePaths: HEALTH_STATUS_BAR_IMAGES };
     }
 
-    /** Setzt sammelbare Werte und Zustände zurück. */
+    /** Sets collectible values and states. */
     resetProgressValues() {
         this.throwableObjects = [];
         this.throwKeyWasPressed = false;
@@ -105,7 +105,7 @@ class WorldBase {
         this.updateRunningSound(false);
     }
 
-    /** Verbindet Objekte mit der aktuellen Welt. */
+    /** Connects objects to the current world. */
     assignWorldReferences() {
         this.character.world = this;
         this.character.animate();
@@ -116,12 +116,12 @@ class WorldBase {
         this.endbossBar.setPercentage(100);
     }
 
-    /** Hängt die Welt an einen Gegner. */
+    /** Assigns the world to an enemy. */
     attachEnemyWorld(enemy) {
         enemy.world = this;
     }
 
-    /** Löscht alle Eingaben. */
+    /** Clears all input states. */
     clearInputStates() {
         this.keyboard.LEFT = false;
         this.keyboard.RIGHT = false;
@@ -131,7 +131,7 @@ class WorldBase {
         this.keyboard.D = false;
     }
 
-    /** Startet das Spiel einmalig. */
+    /** Starts the game once. */
     startGame() {
         if (this.gameStarted || this.gameOver || this.gameWon) {
             return;
@@ -142,18 +142,18 @@ class WorldBase {
         this.gameStarted = true;
     }
 
-    /** Startet direkt eine neue Runde. */
+    /** Starts a new round directly. */
     restartGame() {
         this.resetGame();
         this.startGame();
     }
 
-    /** Kehrt zum Startbildschirm zurück. */
+    /** Returns to the start screen. */
     returnToStartScreen() {
         this.resetGame();
     }
 
-    /** Verarbeitet Klicks auf dem Canvas. */
+    /** Handles canvas clicks. */
     handleCanvasClick(x, y) {
         this.handleUserInteraction();
         const actionName = this.getClickedActionName(x, y);
@@ -163,14 +163,14 @@ class WorldBase {
         }
     }
 
-    /** Liefert den Namen des getroffenen Buttons. */
+    /** Returns the name of the clicked button. */
     getClickedActionName(x, y) {
         return Object.keys(this.actionButtons).find((actionName) => {
             return this.isInsideButton(this.actionButtons[actionName], x, y);
         });
     }
 
-    /** Führt eine Button-Aktion aus. */
+    /** Runs a button action. */
     handleActionButton(actionName) {
         const actions = {
             sound: () => this.toggleSound(),
@@ -185,7 +185,7 @@ class WorldBase {
         }
     }
 
-    /** Prüft, ob ein Punkt in einem Button liegt. */
+    /** Checks whether a point is inside a button. */
     isInsideButton(button, x, y) {
         if (!button) {
             return false;
@@ -194,23 +194,23 @@ class WorldBase {
         return x >= button.x && x <= button.x + button.width && y >= button.y && y <= button.y + button.height;
     }
 
-    /** Schaltet Ton an oder aus. */
+    /** Toggles sound on or off. */
     toggleSound() {
         this.soundEnabled = !this.soundEnabled;
         this.synchronizeAudioState();
     }
 
-    /** Startet die Weltlogik. */
+    /** Starts the world logic. */
     startLoop() {
         setInterval(this.updateWorld.bind(this), 1000 / 60);
     }
 
-    /** Prüft, ob der Spielzyklus aktiv ist. */
+    /** Checks whether the game loop is paused. */
     isLoopPaused() {
         return !this.gameStarted || this.gameOver || this.gameWon;
     }
 
-    /** Liefert das Ende des Hintergrunds. */
+    /** Returns the end of the background. */
     getBackgroundEndX() {
         if (!this.level.backgroundObjects.length) {
             return this.canvas.width;
@@ -219,29 +219,29 @@ class WorldBase {
         return Math.max(...this.level.backgroundObjects.map(this.getBackgroundObjectEndX));
     }
 
-    /** Liefert das Ende eines Hintergrundobjekts. */
+    /** Returns the end of a background object. */
     getBackgroundObjectEndX(backgroundObject) {
         return backgroundObject.x + backgroundObject.width;
     }
 
-    /** Berechnet die Kameraposition für den Charakter. */
+    /** Calculates the camera position for the character. */
     getCameraOffsetFor(characterX) {
         const desiredCameraX = -characterX + 100;
         const maxCameraOffset = Math.min(0, this.canvas.width - this.getBackgroundEndX());
         return Math.max(maxCameraOffset, Math.min(0, desiredCameraX));
     }
 
-    /** Sucht den Endboss im Level. */
+    /** Finds the end boss in the level. */
     getEndboss() {
         return this.level.enemies.find(this.isEndboss.bind(this));
     }
 
-    /** Prüft, ob ein Gegner der Endboss ist. */
+    /** Checks whether an enemy is the end boss. */
     isEndboss(enemy) {
         return enemy instanceof Endboss;
     }
 
-    /** Erzeugt den Endboss beim Erreichen des Bereichs. */
+    /** Spawns the end boss when the area is reached. */
     spawnEndbossIfNeeded() {
         if (!this.level.endbossFactory || this.character.x < this.level.endbossSpawnX) {
             return;
@@ -253,7 +253,7 @@ class WorldBase {
         this.level.endbossFactory = null;
     }
 
-    /** Prüft, ob die Endbossleiste sichtbar sein soll. */
+    /** Checks whether the end boss bar should be visible. */
     shouldShowEndbossBar() {
         const endboss = this.getEndboss();
         return !!endboss && !endboss.isBossDead && this.character.x > endboss.x - 650;

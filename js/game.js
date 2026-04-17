@@ -6,7 +6,7 @@ let fullscreenButton;
 let helpOverlay;
 let mobileButtons = [];
 
-/** Initialisiert das Spiel nach dem Laden der Seite. */
+/** Initializes the game after the page has loaded. */
 function initializeGame() {
     cacheElements();
     world = new World(canvas, keyboard);
@@ -14,12 +14,14 @@ function initializeGame() {
     setupHelpOverlay();
     synchronizeStartScreenOverlayButtons();
     bindCanvasEvents();
+    bindCanvasHoverEvents();
     bindKeyboardEvents();
     setupFullscreenButton();
     setupMobileControls();
     setupOrientationGuard();
 }
-/** Sammelt wichtige DOM-Elemente. */
+
+/** Collects important DOM elements. */
 function cacheElements() {
     canvas = document.getElementById('canvas');
     gameStage = document.getElementById('game-stage');
@@ -28,7 +30,7 @@ function cacheElements() {
     mobileButtons = Array.from(document.querySelectorAll('.mobile-btn'));
 }
 
-/** Startet das Spiel bei Bedarf. */
+/** Starts the game when needed. */
 function startGameIfNeeded() {
     if (!world.gameStarted && !world.gameOver && !world.gameWon) {
         world.startGame();
@@ -36,79 +38,85 @@ function startGameIfNeeded() {
     }
 }
 
-/** Richtet Entsperrer für Audio ein. */
+/** Sets up the audio unlock handlers. */
 function setupAudioUnlock() {
     ['click', 'touchstart', 'keydown'].forEach((eventName) => {
         document.addEventListener(eventName, handleAnyUserInteraction, { once: true });
     });
 }
 
-/** Reagiert auf jede Nutzerinteraktion. */
+/** Handles any user interaction. */
 function handleAnyUserInteraction() {
     world.handleUserInteraction();
     synchronizeStartScreenOverlayButtons();
 }
 
-/** Richtet die Hilfe ein. */
+/** Sets up the help overlay. */
 function setupHelpOverlay() {
     bindHelpOpenButtons();
     bindHelpCloseButtons();
 }
 
-/** Bindet alle Öffner für die Hilfe. */
+/** Binds all help open buttons. */
 function bindHelpOpenButtons() {
     document.getElementById('start-screen-help').addEventListener('click', openHelpOverlay);
 }
 
-/** Öffnet die Hilfe. */
+/** Opens the help overlay. */
 function openHelpOverlay() {
     helpOverlay.classList.add('is-visible');
     helpOverlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('overlay-open');
 }
 
-/** Bindet alle Schließer für die Hilfe. */
+/** Binds all help close buttons. */
 function bindHelpCloseButtons() {
     document.getElementById('help-overlay-close').addEventListener('click', closeHelpOverlay);
     document.getElementById('help-overlay-action').addEventListener('click', closeHelpOverlay);
     helpOverlay.addEventListener('click', handleHelpBackdropClick);
 }
 
-/** Schließt die Hilfe. */
+/** Closes the help overlay. */
 function closeHelpOverlay() {
     helpOverlay.classList.remove('is-visible');
     helpOverlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('overlay-open');
 }
 
-/** Reagiert auf Klicks auf den Overlay-Hintergrund. */
+/** Handles clicks on the overlay backdrop. */
 function handleHelpBackdropClick(event) {
     if (event.target === helpOverlay) {
         closeHelpOverlay();
     }
 }
 
-/** Prüft, ob die Hilfe sichtbar ist. */
+/** Checks whether the help overlay is visible. */
 function isHelpOpen() {
     return helpOverlay.classList.contains('is-visible');
 }
 
-/** Hält die Startscreen-Buttons synchron. */
+/** Keeps the start screen buttons in sync. */
 function synchronizeStartScreenOverlayButtons() {
     updateStartScreenOverlayState(!world.gameStarted && !world.gameOver && !world.gameWon);
 }
 
-/** Schaltet die Startscreen-Klasse. */
+/** Toggles the start screen class. */
 function updateStartScreenOverlayState(shouldShow) {
     gameStage.classList.toggle('show-start-screen-actions', shouldShow);
 }
 
-/** Bindet den Klick auf das Canvas. */
+/** Binds the click handler for the canvas. */
 function bindCanvasEvents() {
     canvas.addEventListener('click', handleCanvasClick);
 }
 
-/** Reagiert auf Canvas-Klicks. */
+/** Binds hover handlers for canvas buttons. */
+function bindCanvasHoverEvents() {
+    canvas.addEventListener('mousemove', handleCanvasPointerMove);
+    canvas.addEventListener('mouseleave', resetCanvasCursor);
+}
+
+/** Handles canvas clicks. */
 function handleCanvasClick(event) {
     if (shouldBlockGameplayForOrientation()) {
         return;
@@ -119,7 +127,41 @@ function handleCanvasClick(event) {
     synchronizeStartScreenOverlayButtons();
 }
 
-/** Rechnet Browser-Koordinaten auf Canvas um. */
+/** Handles pointer movement over the canvas. */
+function handleCanvasPointerMove(event) {
+    if (shouldBlockGameplayForOrientation()) {
+        resetCanvasCursor();
+        return;
+    }
+
+    const position = getCanvasPosition(event);
+    updateCanvasCursor(position.x, position.y);
+}
+
+/** Updates the canvas cursor for clickable action buttons. */
+function updateCanvasCursor(x, y) {
+    const isHoveringActionButton = Object.values(world?.actionButtons ?? {}).some((button) =>
+        isPointInsideButton(x, y, button)
+    );
+
+    canvas.style.cursor = isHoveringActionButton ? 'pointer' : 'default';
+}
+
+/** Resets the canvas cursor. */
+function resetCanvasCursor() {
+    canvas.style.cursor = 'default';
+}
+
+/** Checks whether a point is inside a button. */
+function isPointInsideButton(x, y, button) {
+    return !!button &&
+        x >= button.x &&
+        x <= button.x + button.width &&
+        y >= button.y &&
+        y <= button.y + button.height;
+}
+
+/** Converts browser coordinates to canvas coordinates. */
 function getCanvasPosition(event) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -131,13 +173,13 @@ function getCanvasPosition(event) {
     };
 }
 
-/** Richtet die Tastatursteuerung ein. */
+/** Sets up keyboard controls. */
 function bindKeyboardEvents() {
     window.addEventListener('keydown', handleWindowKeyDown);
     window.addEventListener('keyup', handleWindowKeyUp);
 }
 
-/** Reagiert auf gedrückte Tasten. */
+/** Handles pressed keys. */
 function handleWindowKeyDown(event) {
     if (shouldBlockGameplayForOrientation()) {
         return;
@@ -150,7 +192,7 @@ function handleWindowKeyDown(event) {
     }
 }
 
-/** Startet das Spiel per Tastatur. */
+/** Starts the game with the keyboard. */
 function handleStartKey(code) {
     if (!isStartKey(code) || isHelpOpen()) {
         return;
@@ -159,22 +201,22 @@ function handleStartKey(code) {
     startGameIfNeeded();
 }
 
-/** Prüft, ob die Taste das Spiel startet. */
+/** Checks whether the key starts the game. */
 function isStartKey(code) {
     return code === 'Enter';
 }
 
-/** Prüft, ob Tasten ins Spiel dürfen. */
+/** Checks whether keyboard input is allowed. */
 function canReadKeyboard() {
     return !world.gameOver && !world.gameWon && !isHelpOpen();
 }
 
-/** Reagiert auf losgelassene Tasten. */
+/** Handles released keys. */
 function handleWindowKeyUp(event) {
     setPressedKeyState(event.code, false);
 }
 
-/** Setzt den Tastenzustand passend zum Code. */
+/** Sets the key state for a given key code. */
 function setPressedKeyState(code, isPressed) {
     const keyMap = {
         ArrowLeft: 'LEFT',
@@ -190,7 +232,7 @@ function setPressedKeyState(code, isPressed) {
     }
 }
 
-/** Richtet den Vollbildknopf ein. */
+/** Sets up the fullscreen button. */
 function setupFullscreenButton() {
     if (!document.fullscreenEnabled || !gameStage || !fullscreenButton) {
         return;
@@ -200,7 +242,7 @@ function setupFullscreenButton() {
     document.addEventListener('fullscreenchange', updateFullscreenIcon);
 }
 
-/** Schaltet zwischen Vollbild und normal um. */
+/** Toggles between fullscreen and normal mode. */
 async function toggleFullscreenMode() {
     try {
         if (document.fullscreenElement) {
@@ -214,14 +256,14 @@ async function toggleFullscreenMode() {
     }
 }
 
-/** Aktualisiert das Vollbildsymbol. */
+/** Updates the fullscreen icon. */
 function updateFullscreenIcon() {
     if (fullscreenButton) {
         fullscreenButton.textContent = document.fullscreenElement ? '✕' : '⛶';
     }
 }
 
-/** Richtet die mobilen Steuerflächen ein. */
+/** Sets up the mobile controls. */
 function setupMobileControls() {
     blockMobileContextMenus();
     bindPressButton('btn-left', 'LEFT');
@@ -230,17 +272,17 @@ function setupMobileControls() {
     bindPressButton('btn-throw', 'D');
 }
 
-/** Verhindert Kontextmenüs auf mobilen Buttons. */
+/** Prevents context menus on mobile buttons. */
 function blockMobileContextMenus() {
     mobileButtons.forEach((button) => button.addEventListener('contextmenu', stopButtonContextMenu));
 }
 
-/** Stoppt das Kontextmenü. */
+/** Stops the context menu. */
 function stopButtonContextMenu(event) {
     event.preventDefault();
 }
 
-/** Bindet Druck- und Loslass-Events an einen Button. */
+/** Binds press and release events to a button. */
 function bindPressButton(buttonId, keyName) {
     const button = document.getElementById(buttonId);
 
@@ -253,7 +295,7 @@ function bindPressButton(buttonId, keyName) {
     ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach((name) => button.addEventListener(name, handlePressEnd));
 }
 
-/** Reagiert auf das Drücken eines mobilen Buttons. */
+/** Handles pressing a mobile button. */
 function handlePressStart(event) {
     const button = event.currentTarget;
 
@@ -267,7 +309,7 @@ function handlePressStart(event) {
     startGameIfNeeded();
 }
 
-/** Prüft, ob ein mobiler Input ignoriert werden soll. */
+/** Checks whether a mobile input should be ignored. */
 function shouldIgnoreMobileInput(event, button) {
     return !button ||
         !button.dataset.key ||
@@ -278,12 +320,12 @@ function shouldIgnoreMobileInput(event, button) {
         isSecondaryMouseButton(event);
 }
 
-/** Prüft, ob die zweite Maustaste benutzt wurde. */
+/** Checks whether the secondary mouse button was used. */
 function isSecondaryMouseButton(event) {
     return event.type === 'mousedown' && event.button !== 0;
 }
 
-/** Reagiert auf das Loslassen eines mobilen Buttons. */
+/** Handles releasing a mobile button. */
 function handlePressEnd(event) {
     const button = event.currentTarget;
 
@@ -292,7 +334,7 @@ function handlePressEnd(event) {
     }
 }
 
-/** Erzwingt auf Mobile/Tablets das Spielen im Querformat. */
+/** Enforces landscape gameplay on mobile devices and tablets. */
 function setupOrientationGuard() {
     updateOrientationRequirement();
 
@@ -303,30 +345,31 @@ function setupOrientationGuard() {
     document.addEventListener('fullscreenchange', updateOrientationRequirement);
 }
 
-/** Aktualisiert den Sperrstatus je nach Geräteausrichtung. */
+/** Updates the block state based on the device orientation. */
 function updateOrientationRequirement() {
     const isBlocked = shouldBlockGameplayForOrientation();
     document.body.classList.toggle('portrait-game-blocked', isBlocked);
 
     if (isBlocked) {
         releaseAllKeys();
+        resetCanvasCursor();
         return;
     }
 
     tryLockLandscapeOrientation();
 }
 
-/** Prüft, ob das Spiel wegen Hochformat blockiert werden soll. */
+/** Checks whether gameplay should be blocked in portrait mode. */
 function shouldBlockGameplayForOrientation() {
     return isMobileOrTabletDevice() && window.innerHeight > window.innerWidth;
 }
 
-/** Erkennt Mobile- und Tablet-Geräte. */
+/** Detects mobile devices and tablets. */
 function isMobileOrTabletDevice() {
     return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 }
 
-/** Setzt alle gedrückten Tasten zurück. */
+/** Releases all pressed keys. */
 function releaseAllKeys() {
     keyboard.LEFT = false;
     keyboard.RIGHT = false;
@@ -336,7 +379,7 @@ function releaseAllKeys() {
     keyboard.D = false;
 }
 
-/** Versucht unterstützte Geräte auf Querformat zu sperren. */
+/** Tries to lock supported devices to landscape mode. */
 async function tryLockLandscapeOrientation() {
     if (!isMobileOrTabletDevice()) {
         return;

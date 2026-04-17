@@ -8,7 +8,7 @@ class Level {
     endbossSpawnX = Infinity;
     endbossFactory = null;
 
-    // Erstellt ein Level mit allen Spielobjekten.
+    /** Creates a level with all game objects. */
     constructor(enemies, clouds, backgroundObjects, bottles, coins, levelEndX) {
         this.enemies = enemies;
         this.clouds = clouds;

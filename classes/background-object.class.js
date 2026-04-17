@@ -2,7 +2,7 @@ class BackgroundObject extends MovableObject {
     width = 720;
     height = 480;
 
-    // Erstellt ein Hintergrundobjekt.
+    /** Creates a background object. */
     constructor(imagePath, x, y) {
         super();
         this.loadImage(imagePath);
