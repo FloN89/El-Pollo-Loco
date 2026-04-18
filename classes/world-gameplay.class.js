@@ -1,10 +1,7 @@
 class WorldGameplay extends WorldAudio {
     /** Updates the entire game world. */
     updateWorld() {
-        if (this.isLoopPaused()) {
-            return;
-        }
-
+        if (this.isLoopPaused()) return;
         this.spawnEndbossIfNeeded();
         this.checkCollisions();
         this.checkCollectiblesAndThrows();
@@ -29,10 +26,7 @@ class WorldGameplay extends WorldAudio {
 
     /** Schedules the game over state. */
     scheduleGameOverIfNeeded() {
-        if (!this.character.isDead() || this.endScreenScheduled) {
-            return;
-        }
-
+        if (!this.character.isDead() || this.endScreenScheduled) return;
         this.endScreenScheduled = true;
         this.clearInputStates();
         this.updateRunningSound(false);
@@ -50,11 +44,7 @@ class WorldGameplay extends WorldAudio {
     /** Finishes the game after the boss dies. */
     finishGameIfBossIsDead() {
         const endboss = this.getEndboss();
-
-        if (!endboss || !endboss.isBossDead || this.gameWon) {
-            return;
-        }
-
+        if (!endboss || !endboss.isBossDead || this.gameWon) return;
         this.gameWon = true;
         this.clearInputStates();
         this.stopAllLoopingSounds();
@@ -64,16 +54,40 @@ class WorldGameplay extends WorldAudio {
     /** Checks bottle collisions. */
     checkBottleCollisions() {
         for (let index = this.level.bottles.length - 1; index >= 0; index--) {
-            if (this.canCollectBottle(index)) {
-                this.collectBottle(index);
-            }
+            if (this.canCollectBottle(index)) this.collectBottle(index);
         }
     }
 
     /** Checks whether a bottle can be collected. */
     canCollectBottle(index) {
         const bottle = this.level.bottles[index];
-        return this.character.isCollidingWith(bottle) && this.collectedBottles < this.maxBottles;
+        return this.collectedBottles < this.maxBottles &&
+            this.isCharacterTouchingBottle(bottle);
+    }
+
+    /** Uses a smaller hitbox so bottles need real contact. */
+    isCharacterTouchingBottle(bottle) {
+        const bottleCenter = this.getBottleCenter(bottle);
+        const pickupArea = this.getCharacterBottlePickupArea();
+        return this.isPointInsideArea(bottleCenter, pickupArea);
+    }
+
+    /** Returns the bottle center point. */
+    getBottleCenter(bottle) {
+        return {
+            x: bottle.x + bottle.width / 2,
+            y: bottle.y + bottle.height / 2
+        };
+    }
+
+    /** Returns the bottle pickup area around the lower body. */
+    getCharacterBottlePickupArea() {
+        return {
+            left: this.character.x + 12,
+            right: this.character.x + this.character.width - 12,
+            top: this.character.y + 60,
+            bottom: this.character.y + this.character.height - 8
+        };
     }
 
     /** Collects a bottle. */
@@ -91,9 +105,7 @@ class WorldGameplay extends WorldAudio {
     /** Checks coin collisions. */
     checkCoinCollisions() {
         for (let index = this.level.coins.length - 1; index >= 0; index--) {
-            if (this.canCollectCoin(index)) {
-                this.collectCoin(index);
-            }
+            if (this.canCollectCoin(index)) this.collectCoin(index);
         }
     }
 
@@ -107,10 +119,10 @@ class WorldGameplay extends WorldAudio {
     isCharacterTouchingCoin(coin) {
         const coinCenter = this.getCoinCenter(coin);
         const pickupArea = this.getCharacterCoinPickupArea();
-
         return this.isPointInsideArea(coinCenter, pickupArea);
     }
 
+    /** Returns the coin center point. */
     getCoinCenter(coin) {
         return {
             x: coin.x + coin.width / 2,
@@ -118,6 +130,7 @@ class WorldGameplay extends WorldAudio {
         };
     }
 
+    /** Returns the coin pickup area. */
     getCharacterCoinPickupArea() {
         return {
             left: this.character.x + 12,
@@ -127,6 +140,7 @@ class WorldGameplay extends WorldAudio {
         };
     }
 
+    /** Checks whether a point is inside an area. */
     isPointInsideArea(point, area) {
         return point.x >= area.left &&
             point.x <= area.right &&
@@ -149,10 +163,7 @@ class WorldGameplay extends WorldAudio {
 
     /** Checks the throw button. */
     checkThrowObjects() {
-        if (this.canThrowBottle()) {
-            this.throwBottle();
-        }
-
+        if (this.canThrowBottle()) this.throwBottle();
         this.throwKeyWasPressed = this.keyboard.D;
     }
 
@@ -174,7 +185,8 @@ class WorldGameplay extends WorldAudio {
 
     /** Returns the throw start X position. */
     getThrowableStartX() {
-        return this.character.otherDirection ? this.character.x : this.character.x + this.character.width - 20;
+        return this.character.otherDirection ?
+            this.character.x : this.character.x + this.character.width - 20;
     }
 
     /** Returns the throw direction. */
@@ -189,28 +201,21 @@ class WorldGameplay extends WorldAudio {
 
     /** Handles hits from a throwable object. */
     handleThrowableCollision(throwableBottle) {
-        if (throwableBottle.isBroken) {
-            return;
-        }
-
+        if (throwableBottle.isBroken) return;
         const hitEnemy = this.getHitEnemyForThrowable(throwableBottle);
-
-        if (hitEnemy) {
-            this.handleThrowableHit(throwableBottle, hitEnemy);
-        }
+        if (hitEnemy) this.handleThrowableHit(throwableBottle, hitEnemy);
     }
 
     /** Finds the enemy hit by a throwable object. */
     getHitEnemyForThrowable(throwableBottle) {
-        return this.level.enemies.find((enemy) => this.canThrowableHitEnemy(throwableBottle, enemy));
+        return this.level.enemies.find((enemy) => {
+            return this.canThrowableHitEnemy(throwableBottle, enemy);
+        });
     }
 
     /** Checks whether a throwable object can hit an enemy. */
     canThrowableHitEnemy(throwableBottle, enemy) {
-        if (this.isDeadStompEnemy(enemy)) {
-            return false;
-        }
-
+        if (this.isDeadStompEnemy(enemy)) return false;
         return throwableBottle.isCollidingWith(enemy);
     }
 
@@ -218,7 +223,8 @@ class WorldGameplay extends WorldAudio {
     handleThrowableHit(throwableBottle, enemy) {
         throwableBottle.splash();
         this.playHitSound();
-        enemy instanceof Endboss ? this.damageEndboss(enemy) : this.defeatChicken(enemy);
+        enemy instanceof Endboss ?
+            this.damageEndboss(enemy) : this.defeatChicken(enemy);
     }
 
     /** Applies damage to the endboss. */
@@ -236,11 +242,7 @@ class WorldGameplay extends WorldAudio {
     /** Checks the endboss behavior. */
     checkEndbossBehavior() {
         const endboss = this.getEndboss();
-
-        if (!endboss || endboss.isBossDead) {
-            return;
-        }
-
+        if (!endboss || endboss.isBossDead) return;
         if (endboss.updateBehavior(this.character) && !this.character.isHurt()) {
             this.damageCharacter(20);
         }
@@ -251,48 +253,83 @@ class WorldGameplay extends WorldAudio {
         this.character.hit(amount);
         this.playHitSound();
     }
-
     /** Removes finished throwable objects. */
     removeFinishedThrowableObjects() {
         this.throwableObjects = this.throwableObjects.filter(this.isThrowableStillActive);
     }
-
     /** Checks whether a throwable object stays active. */
     isThrowableStillActive(throwableBottle) {
         return !throwableBottle.isFinished;
     }
-
     /** Checks collisions between the character and enemies. */
     checkCollisions() {
         for (let index = this.level.enemies.length - 1; index >= 0; index--) {
             this.handleEnemyCollision(this.level.enemies[index]);
         }
     }
-
     /** Handles an enemy collision. */
     handleEnemyCollision(enemy) {
-        if (!this.character.isCollidingWith(enemy)) {
-            return;
-        }
-
+        if (!this.isCharacterCollidingWithEnemy(enemy)) return;
         if (this.canJumpOnEnemy(enemy)) {
             this.jumpOnChicken(enemy);
             return;
         }
-
-        if (this.canEnemyDamageCharacter(enemy)) {
-            this.damageCharacter(20);
-        }
+        if (this.isCharacterLandingOnEnemy(enemy)) return;
+        if (this.canEnemyDamageCharacter(enemy)) this.damageCharacter(20);
+    }
+    /** Checks whether the reduced hitboxes overlap. */
+    isCharacterCollidingWithEnemy(enemy) {
+        const characterBox = this.getCharacterEnemyHitbox();
+        const enemyBox = this.getEnemyHitbox(enemy);
+        return this.isAreaColliding(characterBox, enemyBox);
+    }
+    /** Returns the reduced character hitbox for enemy contact. */
+    getCharacterEnemyHitbox() {
+        return {
+            left: this.character.x + 24,
+            right: this.character.x + this.character.width - 24,
+            top: this.character.y + 38,
+            bottom: this.character.y + this.character.height - 12
+        };
+    }
+    /** Returns the reduced enemy hitbox. */
+    getEnemyHitbox(enemy) {
+    if (enemy instanceof SmallChicken) {
+        return {
+            left: enemy.x + 16,
+            right: enemy.x + enemy.width - 16,
+            top: enemy.y + 14,
+            bottom: enemy.y + enemy.height - 8
+        };
+    }
+    return {
+        left: enemy.x + 10,
+        right: enemy.x + enemy.width - 10,
+        top: enemy.y + 8,
+        bottom: enemy.y + enemy.height - 6
+    };
+}
+    /** Checks whether two rectangular areas overlap. */
+    isAreaColliding(areaA, areaB) {
+        return areaA.right > areaB.left &&
+            areaA.bottom > areaB.top &&
+            areaA.left < areaB.right &&
+            areaA.top < areaB.bottom;
     }
 
     /** Checks whether an enemy can be jumped on. */
     canJumpOnEnemy(enemy) {
-        return this.isStompEnemy(enemy) && !enemy.isDeadChicken && this.isJumpingOnEnemy(enemy);
+        return this.isStompEnemy(enemy) &&
+            !enemy.isDeadChicken &&
+            this.isJumpingOnEnemy(enemy);
     }
 
     /** Checks whether a chicken can damage the character. */
     canEnemyDamageCharacter(enemy) {
-        return this.isStompEnemy(enemy) && !enemy.isDeadChicken && !this.character.isHurt();
+        return this.isStompEnemy(enemy) &&
+            !enemy.isDeadChicken &&
+            !this.character.isHurt() &&
+            !this.isCharacterLandingOnEnemy(enemy);
     }
 
     /** Checks regular and small chickens. */
@@ -315,45 +352,49 @@ class WorldGameplay extends WorldAudio {
 
     /** Checks whether the character lands on a chicken. */
     isJumpingOnEnemy(enemy) {
-        const characterFeet = this.getCharacterFeetHitbox();
-        const currentBottom = characterFeet.bottom;
-        const previousBottom = this.getPreviousCharacterBottom();
-        const enemyTopHitZone = enemy.y + Math.min(35, enemy.height * 0.65);
-
-        return this.character.speedY < 0 &&
-            characterFeet.right > enemy.x &&
-            characterFeet.left < enemy.x + enemy.width &&
-            previousBottom <= enemyTopHitZone &&
-            currentBottom >= enemy.y &&
-            currentBottom <= enemy.y + enemy.height;
+        const feet = this.getCharacterFeetHitbox();
+        const enemyBox = this.getEnemyHitbox(enemy);
+        const topZone = enemyBox.top + Math.min(40, enemy.height * 0.65);
+        return this.isCharacterFalling() &&
+            this.isFeetHorizontallyAboveEnemy(feet, enemyBox) &&
+            feet.bottom >= enemyBox.top - 12 &&
+            feet.bottom <= topZone + 12;
     }
 
+    /** Prevents damage during the first landing frames from above. */
+    isCharacterLandingOnEnemy(enemy) {
+        const feet = this.getCharacterFeetHitbox();
+        const enemyBox = this.getEnemyHitbox(enemy);
+        return this.isCharacterFalling() &&
+            this.isFeetHorizontallyAboveEnemy(feet, enemyBox) &&
+            feet.bottom < enemyBox.top + (enemyBox.bottom - enemyBox.top) * 0.45;
+    }
+
+    /** Checks the horizontal overlap of the feet with the enemy. */
+    isFeetHorizontallyAboveEnemy(feet, enemyBox) {
+        return feet.right > enemyBox.left + 4 &&
+            feet.left < enemyBox.right - 4;
+    }
+
+    /** Checks whether the character is currently falling. */
+    isCharacterFalling() {
+        return this.character.speedY < 0;
+    }
     /** Returns a narrower feet hitbox for stomp checks. */
     getCharacterFeetHitbox() {
         return {
-            left: this.character.x + 20,
-            right: this.character.x + this.character.width - 20,
+            left: this.character.x + 24,
+            right: this.character.x + this.character.width - 24,
             bottom: this.character.y + this.character.height
         };
     }
-
-    /** Returns the character bottom from the previous gravity update. */
-    getPreviousCharacterBottom() {
-        const previousY = this.character.lastY ?? this.character.y;
-        return previousY + this.character.height;
-    }
-
     /** Removes an enemy after a delay. */
     scheduleEnemyRemoval(enemy, delay) {
         setTimeout(() => this.removeEnemyIfPresent(enemy), delay);
     }
-
-    /** Removes an enemy if it still exists. */
+ /** Removes an enemy if it still exists. */
     removeEnemyIfPresent(enemy) {
         const enemyIndex = this.level.enemies.indexOf(enemy);
-
-        if (enemyIndex > -1) {
-            this.level.enemies.splice(enemyIndex, 1);
-        }
+        if (enemyIndex > -1) this.level.enemies.splice(enemyIndex, 1);
     }
 }
